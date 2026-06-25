@@ -1,6 +1,6 @@
 # 🤖 EY Bobathon - Advanced Bob Training 🤖
 
-## 📅 Session 1: Advanced Bob Capabilities (150 minutes) - 25th June
+## 📅 Session 1: Advanced Bob Capabilities (120 minutes) - 25th June
 
 ### 1.1 Recap & Quick Poll
 - Bob core feature recap
