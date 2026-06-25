@@ -13,5 +13,5 @@ convert this file content @2408.09869v5.pdf to markdown and show me the heading 
 
 Subagent prompt
 ```
-Use this subagent @.bob/agents/dockerfile-generator.md and add a Dockerfile for this project @bob-chrome-devtools/
+Use this subagent @.bob/agents/dockerfile-generator.md and add a Dockerfile for this project @fastapi-demo/
 ```
