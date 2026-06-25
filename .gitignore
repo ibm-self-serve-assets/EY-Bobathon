@@ -1,2 +1,80 @@
 .bob-errors
 .DS_Store
+
+# Dependencies
+node_modules/
+
+# Database
+tax_data.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.venv/
+venv
+*.swp
+*.swo
+
+# Lock files (optional - some teams commit this)
+package-lock.json
+
+# Made with Bob
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/appsettings.Development.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/appsettings.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/Microsoft.AspNetCore.OpenApi.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/Microsoft.OpenApi.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.deps.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.pdb
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.runtimeconfig.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.staticwebassets.endpoints.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/Swashbuckle.AspNetCore.Swagger.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/bin/Debug/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/ModernTaxPortal.MinimalApi.Net8.csproj.nuget.dgspec.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/ModernTaxPortal.MinimalApi.Net8.csproj.nuget.g.props
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/ModernTaxPortal.MinimalApi.Net8.csproj.nuget.g.targets
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/project.assets.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/project.nuget.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/apphost
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTa.2772A68C.Up2Date
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.AssemblyInfo.cs
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.AssemblyInfoInputs.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.assets.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.csproj.AssemblyReference.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.csproj.CoreCompileInputs.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.csproj.FileListAbsolute.txt
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.GeneratedMSBuildEditorConfig.editorconfig
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.genruntimeconfig.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.GlobalUsings.g.cs
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.MvcApplicationPartsAssemblyInfo.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.MvcApplicationPartsAssemblyInfo.cs
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ModernTaxPortal.MinimalApi.Net8.pdb
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/rjsmcshtml.dswa.cache.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/rjsmrazor.dswa.cache.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/rpswa.dswa.cache.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/staticwebassets.build.endpoints.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/staticwebassets.build.json
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/staticwebassets.build.json.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/swae.build.ex.cache
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/ref/ModernTaxPortal.MinimalApi.Net8.dll
+Session1/1.3_Hands-on_Lab/lab/solutions/ModernTaxPortal.MinimalApi.Net8/obj/Debug/net8.0/refint/ModernTaxPortal.MinimalApi.Net8.dll
+Session2/2.2_Security_and_Compliance/lab/secure-tax-app
+Session2/2.2_Security_and_Compliance/lab/vulnerable-tax-app/tax_data_backup.db
+Session2/2.3_Best_Practices/Non-Interactive/node-express-realworld-example-app
+Session2/2.3_Best_Practices/Non-Interactive/audit_report.md
+wxo-implementation-guide.md
+.bob/rules
+
+outputs
