@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legacy .NET Framework 4.8 Tax Portal — Migration Analysis Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #ffffff;
+      --surface:   #f7f8fa;
+      --surface2:  #eef0f5;
+      --border:    #e2e5ec;
+      --accent:    #3b6ef5;
+      --accent2:   #7c5cd8;
+      --green:     #10825c;
+      --yellow:    #92610a;
+      --red:       #b91c1c;
+      --text:      #1a1d2e;
+      --muted:     #57606a;
+      --code-bg:   #f0f2f7;
+      --radius:    10px;
+      --get:       #166534;
+      --post:      #1d4ed8;
+      --put:       #92400e;
+      --delete:    #991b1b;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 256px;
+      min-width: 256px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0 40px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo .logo-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #6c8ef5, #a78bfa);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .sidebar-logo h2 { font-size: 13px; color: var(--text); font-weight: 600; line-height: 1.4; }
+    .sidebar-logo .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    nav a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    nav a:hover { color: var(--text); background: var(--surface2); }
+    nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(108,142,245,0.07); }
+    nav .nav-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 14px 20px 4px;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 56px 80px;
+      max-width: 1080px;
+    }
+
+    /* Page header */
+    .page-header { margin-bottom: 48px; }
+    .page-header .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      padding: 3px 10px; border-radius: 20px; border: 1px solid;
+    }
+    .badge-blue   { color: #93c5fd; border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .badge-purple { color: #c4b5fd; border-color: #8b5cf6; background: rgba(139,92,246,0.1); }
+    .badge-green  { color: #6ee7b7; border-color: #10b981; background: rgba(16,185,129,0.1); }
+    .page-header h1 { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .page-header p  { color: var(--muted); font-size: 15px; }
+    .scope-bar {
+      display: flex; gap: 24px; flex-wrap: wrap;
+      margin-top: 20px; padding: 16px 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 13px;
+    }
+    .scope-item span:first-child { color: var(--muted); }
+    .scope-item span:last-child  { color: var(--text); font-weight: 500; margin-left: 4px; }
+
+    /* Section */
+    section { margin-bottom: 60px; scroll-margin-top: 24px; }
+    section h2 {
+      font-size: 20px; font-weight: 700;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section h2 .section-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    section h3 { font-size: 15px; font-weight: 600; color: var(--accent2); margin: 24px 0 12px; }
+    p { margin-bottom: 12px; }
+
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px; text-align: center;
+    }
+    .stat-card .stat-value { font-size: 30px; font-weight: 700; line-height: 1; }
+    .stat-card .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .stat-card.green  .stat-value { color: var(--green); }
+    .stat-card.yellow .stat-value { color: var(--yellow); }
+    .stat-card.red    .stat-value { color: var(--red); }
+    .stat-card.blue   .stat-value { color: var(--accent); }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead tr { background: var(--surface2); }
+    thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:hover { background: rgba(59,110,245,0.04); }
+    tbody td { padding: 10px 14px; vertical-align: top; }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px; background: var(--code-bg);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 1px 6px; color: #1e40af;
+    }
+
+    /* Method badges */
+    .method {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.5px; padding: 2px 7px; border-radius: 4px;
+      min-width: 52px; text-align: center;
+    }
+    .method-GET    { background: #dcfce7; color: var(--get);    border: 1px solid #bbf7d0; }
+    .method-POST   { background: #dbeafe; color: var(--post);   border: 1px solid #bfdbfe; }
+    .method-PUT    { background: #fef3c7; color: var(--put);    border: 1px solid #fde68a; }
+    .method-DELETE { background: #fee2e2; color: var(--delete); border: 1px solid #fecaca; }
+
+    /* Impact pills */
+    .impact {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+    }
+    .impact-green  { color: var(--green);  background: #d1fae5; border: 1px solid #a7f3d0; }
+    .impact-yellow { color: var(--yellow); background: #fef9c3; border: 1px solid #fde68a; }
+    .impact-red    { color: var(--red);    background: #fee2e2; border: 1px solid #fecaca; }
+
+    /* Risk labels */
+    .risk-blocker { color: var(--red);    font-weight: 700; }
+    .risk-medium  { color: var(--yellow); font-weight: 700; }
+
+    /* Calc flow */
+    .flow {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 32px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px; line-height: 1.9; color: var(--text); overflow-x: auto;
+    }
+    .flow .flow-step  { color: var(--accent); font-weight: 600; }
+    .flow .flow-rule  { color: var(--muted); }
+    .flow .flow-arrow { color: var(--accent2); }
+
+    /* Phase steps */
+    .phases { display: flex; flex-direction: column; gap: 16px; }
+    .phase { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+    .phase-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border);
+    }
+    .phase-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    }
+    .phase-title { font-size: 14px; font-weight: 600; }
+    .phase-body { padding: 14px 20px; }
+    .phase-body ol { padding-left: 20px; }
+    .phase-body li { margin-bottom: 6px; font-size: 13.5px; color: var(--muted); }
+    .phase-body li strong { color: var(--text); }
+
+    /* File tree */
+    .file-tree {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px; line-height: 1.9; color: var(--text); overflow-x: auto; margin-bottom: 20px;
+    }
+    .file-tree .comment { color: var(--muted); }
+
+    /* Callouts */
+    .callout {
+      border-left: 3px solid; border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px; margin: 16px 0; font-size: 13.5px;
+    }
+    .callout-yellow { border-color: #d97706; background: #fffbeb; }
+    .callout-red    { border-color: #dc2626; background: #fff5f5; }
+    .callout-blue   { border-color: var(--accent); background: #eff3ff; }
+    .callout strong { font-weight: 700; }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 28px; font-size: 12px; color: var(--muted);
+      border-top: 1px solid var(--border); background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-tag">Analysis Report</div>
+      <h2>LegacyTaxPortal<br>.NET Framework 4.8</h2>
+      <div class="meta">Migration target: .NET 8 Minimal API</div>
+    </div>
+    <nav>
+      <div class="nav-section">Sections</div>
+      <a href="#s1" class="active">1. Architecture</a>
+      <a href="#s2">2. API Endpoints</a>
+      <a href="#s3">3. Domain Model</a>
+      <a href="#s4">4. Calculation Flow</a>
+      <a href="#s5">5. Validation Logic</a>
+      <a href="#s6">6. Legacy Patterns</a>
+      <a href="#s7">7. File Impact</a>
+      <a href="#s8">8. Risks &amp; Blockers</a>
+      <a href="#s9">9. Migration Sequence</a>
+      <a href="#s10">10. Endpoint Mapping</a>
+      <a href="#s11">11. Assumptions</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="page-header">
+      <div class="badge-row">
+        <span class="badge badge-blue">.NET Framework 4.8</span>
+        <span class="badge badge-purple">ASP.NET Web API 5.2.9</span>
+        <span class="badge badge-green">Analysis Only — No Code Modified</span>
+      </div>
+      <h1>Legacy Tax Portal<br>Migration Analysis Report</h1>
+      <p>A full technical analysis of <strong>LegacyTaxPortal.WebApi.Framework48</strong> ahead of migration to <strong>.NET 8 Minimal API</strong>.</p>
+      <div class="scope-bar">
+        <div class="scope-item"><span>Source</span><span>legacy-code/LegacyTaxPortal.WebApi.Framework48/</span></div>
+        <div class="scope-item"><span>Target</span><span>.NET 8 Minimal API</span></div>
+        <div class="scope-item"><span>Endpoints</span><span>14</span></div>
+        <div class="scope-item"><span>Controllers</span><span>5</span></div>
+        <div class="scope-item"><span>Services</span><span>8</span></div>
+      </div>
+    </header>
+
+    <!-- 1. Architecture -->
+    <section id="s1">
+      <h2><span class="section-num">1</span> Current Application Architecture</h2>
+      <p>The application is a single-project <strong>ASP.NET Web API</strong> hosted on <strong>IIS via System.Web</strong>, targeting <strong>.NET Framework 4.8</strong>. It uses no DI container — all services are instantiated directly via <code>new</code> inside controllers and other services.</p>
+      <div class="file-tree">
+LegacyTaxPortal.WebApi.Framework48/<br>
+├── App_Start/<br>
+│&nbsp;&nbsp;&nbsp;└── WebApiConfig.cs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Route registration</span><br>
+├── Controllers/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← HTTP handlers (ApiController)</span><br>
+│&nbsp;&nbsp;&nbsp;├── AuditController.cs<br>
+│&nbsp;&nbsp;&nbsp;├── DashboardController.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxDocumentsController.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxFilingsController.cs<br>
+│&nbsp;&nbsp;&nbsp;└── TaxPayersController.cs<br>
+├── DTOs/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Request / Response shapes</span><br>
+│&nbsp;&nbsp;&nbsp;├── AssignReviewerRequest.cs<br>
+│&nbsp;&nbsp;&nbsp;├── CreateTaxDocumentRequest.cs<br>
+│&nbsp;&nbsp;&nbsp;├── DashboardSummary.cs<br>
+│&nbsp;&nbsp;&nbsp;├── ReviewStatusUpdateRequest.cs<br>
+│&nbsp;&nbsp;&nbsp;└── TaxCalculationResult.cs<br>
+├── Models/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Domain entities (POCOs)</span><br>
+│&nbsp;&nbsp;&nbsp;├── AuditEvent.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxDocument.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxFiling.cs<br>
+│&nbsp;&nbsp;&nbsp;└── TaxPayer.cs<br>
+├── Services/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Business logic</span><br>
+│&nbsp;&nbsp;&nbsp;├── AuditService.cs<br>
+│&nbsp;&nbsp;&nbsp;├── DashboardService.cs<br>
+│&nbsp;&nbsp;&nbsp;├── InMemoryTaxRepository.cs &nbsp;<span class="comment">← Static in-memory data store</span><br>
+│&nbsp;&nbsp;&nbsp;├── TaxCalculationService.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxDocumentService.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxFilingService.cs<br>
+│&nbsp;&nbsp;&nbsp;├── TaxPayerService.cs<br>
+│&nbsp;&nbsp;&nbsp;└── TaxValidationService.cs<br>
+├── Global.asax / Global.asax.cs &nbsp;<span class="comment">← Application lifecycle entry point</span><br>
+├── Web.config &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← IIS/ASP.NET configuration</span><br>
+└── packages.config &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← Pre-SDK NuGet manifest</span>
+      </div>
+      <h3>NuGet Dependencies</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Package</th><th>Version</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><code>Microsoft.AspNet.WebApi</code></td><td>5.2.9</td><td>HTTP framework</td></tr>
+            <tr><td><code>Microsoft.AspNet.WebApi.Core</code></td><td>5.2.9</td><td>Core WebApi types</td></tr>
+            <tr><td><code>Microsoft.AspNet.WebApi.WebHost</code></td><td>5.2.9</td><td>IIS/System.Web hosting</td></tr>
+            <tr><td><code>Newtonsoft.Json</code></td><td>13.0.3</td><td>JSON serialisation</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-yellow">
+        <strong>Data layer:</strong> A single <code>static</code> class <code>InMemoryTaxRepository</code> holds four shared mutable <code>List&lt;T&gt;</code> collections. There is no database, no ORM, and no persistence across process restarts.
+      </div>
+    </section>
+
+    <!-- 2. Endpoints -->
+    <section id="s2">
+      <h2><span class="section-num">2</span> API Endpoints and Route Structure</h2>
+      <p>Routing uses <strong>attribute routing</strong> (<code>config.MapHttpAttributeRoutes()</code>) combined with a conventional fallback route <code>api/{controller}/{id}</code>. All routes use the <code>api/</code> prefix. There is no API versioning, authentication, or content negotiation beyond JSON.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Route</th><th>Controller</th><th>Action</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxpayers</code></td><td>TaxPayersController</td><td>GetTaxPayers</td><td>List all taxpayers</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxpayers/{id}</code></td><td>TaxPayersController</td><td>GetTaxPayer</td><td>Get single taxpayer</td></tr>
+            <tr><td><span class="method method-POST">POST</span></td><td><code>api/taxpayers</code></td><td>TaxPayersController</td><td>CreateTaxPayer</td><td>Create taxpayer</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxfilings</code></td><td>TaxFilingsController</td><td>GetTaxFilings</td><td>List all filings</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxfilings/{id}</code></td><td>TaxFilingsController</td><td>GetTaxFiling</td><td>Get single filing</td></tr>
+            <tr><td><span class="method method-POST">POST</span></td><td><code>api/taxfilings</code></td><td>TaxFilingsController</td><td>CreateTaxFiling</td><td>Create filing with validation</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxfilings/{id}/calculation</code></td><td>TaxFilingsController</td><td>GetTaxCalculation</td><td>Run tax calculation</td></tr>
+            <tr><td><span class="method method-PUT">PUT</span></td><td><code>api/taxfilings/{id}/status</code></td><td>TaxFilingsController</td><td>UpdateReviewStatus</td><td>Update review status</td></tr>
+            <tr><td><span class="method method-PUT">PUT</span></td><td><code>api/taxfilings/{id}/reviewer</code></td><td>TaxFilingsController</td><td>AssignReviewer</td><td>Assign a reviewer</td></tr>
+            <tr><td><span class="method method-DELETE">DELETE</span></td><td><code>api/taxfilings/{id}</code></td><td>TaxFilingsController</td><td>DeleteTaxFiling</td><td>Delete a filing</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/taxfilings/{filingId}/documents</code></td><td>TaxDocumentsController</td><td>GetDocuments</td><td>List documents for a filing</td></tr>
+            <tr><td><span class="method method-POST">POST</span></td><td><code>api/taxfilings/{filingId}/documents</code></td><td>TaxDocumentsController</td><td>AddDocument</td><td>Upload document to filing</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/audit</code></td><td>AuditController</td><td>GetAuditEvents</td><td>List all audit events</td></tr>
+            <tr><td><span class="method method-GET">GET</span></td><td><code>api/dashboard/summary</code></td><td>DashboardController</td><td>GetSummary</td><td>Dashboard statistics</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. Domain Model -->
+    <section id="s3">
+      <h2><span class="section-num">3</span> Tax Domain Model and Terminology</h2>
+
+      <h3>TaxPayer — Registered tax entity</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>Id</code></td><td>int</td><td>Auto-assigned integer key</td></tr>
+            <tr><td><code>TaxPayerName</code></td><td>string</td><td>Display name</td></tr>
+            <tr><td><code>TaxIdentifier</code></td><td>string</td><td>EIN (USA) or PAN (India) — no format validation</td></tr>
+            <tr><td><code>EntityType</code></td><td>string</td><td><code>"Individual"</code>, <code>"Corporate"</code>, <code>"Partnership"</code></td></tr>
+            <tr><td><code>Country</code></td><td>string</td><td>Free text</td></tr>
+            <tr><td><code>State</code></td><td>string</td><td>Free text</td></tr>
+            <tr><td><code>IsActive</code></td><td>bool</td><td>Always set to <code>true</code> on create</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>TaxFiling — Tax return submission</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>Id</code></td><td>int</td><td>Auto-assigned</td></tr>
+            <tr><td><code>TaxPayerId</code></td><td>int</td><td>FK to TaxPayer — not enforced in code</td></tr>
+            <tr><td><code>TaxPayerName</code></td><td>string</td><td>Denormalised — duplicated from TaxPayer</td></tr>
+            <tr><td><code>TaxYear</code></td><td>string</td><td>e.g. <code>"2025"</code> — free text, not a typed date</td></tr>
+            <tr><td><code>FilingType</code></td><td>string</td><td><code>"Individual"</code>, <code>"Corporate"</code>, <code>"Partnership"</code></td></tr>
+            <tr><td><code>AnnualIncome</code></td><td>decimal</td><td>Gross income before deductions</td></tr>
+            <tr><td><code>DeductionAmount</code></td><td>decimal</td><td>Total deductions claimed</td></tr>
+            <tr><td><code>ReviewStatus</code></td><td>string</td><td><code>"Draft"</code>, <code>"Under Review"</code>, <code>"Approved"</code>, <code>"Rejected"</code></td></tr>
+            <tr><td><code>AssignedReviewer</code></td><td>string</td><td>Defaults to <code>"Unassigned"</code></td></tr>
+            <tr><td><code>RiskBand</code></td><td>string</td><td><code>"Low"</code>, <code>"Medium"</code>, <code>"High"</code></td></tr>
+            <tr><td><code>CreatedDate</code></td><td>DateTime</td><td>Set to <code>DateTime.UtcNow</code> on create</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>TaxDocument — Supporting document on a filing</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>Id</code></td><td>int</td><td>Auto-assigned</td></tr>
+            <tr><td><code>FilingId</code></td><td>int</td><td>FK to TaxFiling</td></tr>
+            <tr><td><code>DocumentName</code></td><td>string</td><td>Filename</td></tr>
+            <tr><td><code>DocumentType</code></td><td>string</td><td>Category e.g. <code>"Income Statement"</code></td></tr>
+            <tr><td><code>UploadedBy</code></td><td>string</td><td>Username string</td></tr>
+            <tr><td><code>UploadedDate</code></td><td>DateTime</td><td>Set to <code>DateTime.UtcNow</code> on create</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>AuditEvent — Immutable domain action record</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>Id</code></td><td>int</td><td>Auto-assigned</td></tr>
+            <tr><td><code>EntityName</code></td><td>string</td><td>e.g. <code>"TaxFiling"</code>, <code>"TaxDocument"</code></td></tr>
+            <tr><td><code>EntityId</code></td><td>int</td><td>ID of the affected entity</td></tr>
+            <tr><td><code>EventType</code></td><td>string</td><td>e.g. <code>"Created"</code>, <code>"StatusUpdated"</code>, <code>"Deleted"</code></td></tr>
+            <tr><td><code>Message</code></td><td>string</td><td>Human-readable description</td></tr>
+            <tr><td><code>PerformedBy</code></td><td>string</td><td>Username, defaults to <code>"system"</code></td></tr>
+            <tr><td><code>EventDate</code></td><td>DateTime</td><td>Set to <code>DateTime.UtcNow</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Key Domain Terms</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>RiskBand</strong></td><td>Risk classification computed from deduction ratio and taxable income: Low / Medium / High</td></tr>
+            <tr><td><strong>ReviewStatus</strong></td><td>Lifecycle state of a filing: Draft → Under Review → Approved / Rejected</td></tr>
+            <tr><td><strong>TaxableIncome</strong></td><td><code>AnnualIncome − DeductionAmount</code> (floor at 0)</td></tr>
+            <tr><td><strong>EffectiveTaxRate</strong></td><td><code>EstimatedTax / AnnualIncome</code></td></tr>
+            <tr><td><strong>ReviewRecommendation</strong></td><td>Plain-text recommendation derived from RiskBand</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. Calculation Flow -->
+    <section id="s4">
+      <h2><span class="section-num">4</span> Tax Calculation Flow</h2>
+      <p>Performed by <code>TaxCalculationService.Calculate(TaxFiling)</code>, exposed via <code>GET api/taxfilings/{id}/calculation</code>.</p>
+      <div class="flow">
+        <span class="flow-step">TaxFiling</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">TaxableIncome</span> = AnnualIncome − DeductionAmount &nbsp;<span class="flow-rule">(min 0)</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">EstimatedTax</span> = CalculateEstimatedTax(TaxableIncome, FilingType)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">Individual: &nbsp;≤ 100,000 → 10%</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="flow-rule">≤ 500,000 → 20%</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="flow-rule">&gt; 500,000 → 30%</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">Partnership: flat 24%</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">Corporate (default): flat 21%</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">EffectiveTaxRate</span> = EstimatedTax / AnnualIncome &nbsp;<span class="flow-rule">(0 if income = 0)</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">RiskBand</span> = CalculateRiskBand(filing, taxableIncome, effectiveRate)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">DeductionAmount &gt; AnnualIncome × 30%</span>&nbsp;<span class="flow-arrow">→ "High"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">TaxableIncome &gt; 500,000 OR EffectiveRate &lt; 10%</span>&nbsp;<span class="flow-arrow">→ "Medium"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">Otherwise</span>&nbsp;<span class="flow-arrow">→ "Low"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">ReviewRecommendation</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">"High"</span>&nbsp;&nbsp;&nbsp;<span class="flow-arrow">→ "Enhanced review required"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">"Medium"</span>&nbsp;<span class="flow-arrow">→ "Standard review required"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;<span class="flow-rule">"Low"</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="flow-arrow">→ "Auto-approval candidate"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+        <span class="flow-step">TaxCalculationResult</span> (DTO returned to caller)
+      </div>
+      <div class="callout callout-yellow" style="margin-top:20px;">
+        <strong>Important:</strong> The calculation is <strong>stateless and on-demand</strong> — it does not persist the computed <code>RiskBand</code> back to the filing. The <code>RiskBand</code> on <code>TaxFiling</code> is a separate field set at creation time.
+      </div>
+      <div class="callout callout-red" style="margin-top:12px;">
+        <strong>Performance note:</strong> <code>DashboardService.GetSummary()</code> calls <code>Calculate()</code> for every filing to sum <code>TotalEstimatedTax</code>. This is an N-call loop per dashboard request — acceptable now, a bottleneck once a real database is introduced.
+      </div>
+    </section>
+
+    <!-- 5. Validation -->
+    <section id="s5">
+      <h2><span class="section-num">5</span> Validation Logic</h2>
+      <p>Validation is implemented in <code>TaxValidationService</code> and called from <code>TaxFilingService.Validate()</code>.</p>
+
+      <h3>Filing Validation Rules</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rule</th><th>Error Message</th></tr></thead>
+          <tbody>
+            <tr><td><code>filing == null</code></td><td>"Tax filing payload is required."</td></tr>
+            <tr><td><code>TaxPayerName</code> is null/empty</td><td>"Taxpayer name is required."</td></tr>
+            <tr><td><code>TaxYear</code> is null/empty</td><td>"Tax year is required."</td></tr>
+            <tr><td><code>AnnualIncome &lt; 0</code></td><td>"Annual income cannot be negative."</td></tr>
+            <tr><td><code>DeductionAmount &lt; 0</code></td><td>"Deduction amount cannot be negative."</td></tr>
+            <tr><td><code>DeductionAmount &gt; AnnualIncome</code></td><td>"Deduction amount cannot exceed annual income."</td></tr>
+            <tr><td><code>FilingType</code> is null/empty</td><td>"Filing type is required."</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Review Status Validation</h3>
+      <p>Accepts only: <code>"Draft"</code>, <code>"Under Review"</code>, <code>"Approved"</code>, <code>"Rejected"</code>.</p>
+
+      <h3>Validation Gaps — Missing Rules</h3>
+      <div class="callout callout-red">
+        <ul style="padding-left:18px; line-height:2.1;">
+          <li>No validation that <code>TaxPayerId</code> references an existing <code>TaxPayer</code>.</li>
+          <li>No validation of <code>TaxYear</code> format (e.g. 4-digit year only).</li>
+          <li>No validation of <code>FilingType</code> against the allowed value set.</li>
+          <li><code>TaxPayersController.CreateTaxPayer</code> performs <strong>no validation</strong> beyond a null check.</li>
+          <li>No duplicate detection — the same taxpayer + tax year combination can be filed multiple times.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 6. Legacy Patterns -->
+    <section id="s6">
+      <h2><span class="section-num">6</span> Legacy Framework Patterns</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pattern</th><th>Location</th><th>Migration Impact</th></tr></thead>
+          <tbody>
+            <tr><td><code>System.Web.HttpApplication</code> (Global.asax)</td><td>Global.asax.cs</td><td>Replace with <code>Program.cs</code> / <code>WebApplication.CreateBuilder()</code></td></tr>
+            <tr><td><code>ApiController</code> base class</td><td>All controllers</td><td>Replace with Minimal API <code>app.MapGet/Post/Put/Delete()</code></td></tr>
+            <tr><td><code>IHttpActionResult</code> return type</td><td>All controller actions</td><td>Replace with <code>IResult</code> / <code>Results.*</code></td></tr>
+            <tr><td><code>HttpConfiguration</code> / <code>GlobalConfiguration</code></td><td>WebApiConfig.cs</td><td>Replace with <code>builder.Services</code> / <code>app.Use*()</code></td></tr>
+            <tr><td><code>config.MapHttpAttributeRoutes()</code></td><td>WebApiConfig.cs</td><td>Remove — replaced by Minimal API route registration</td></tr>
+            <tr><td><code>config.Routes.MapHttpRoute()</code></td><td>WebApiConfig.cs</td><td>Remove — conventional routing not used in Minimal API</td></tr>
+            <tr><td><code>[Route]</code> / <code>[HttpGet]</code> / <code>[HttpPost]</code> attributes</td><td>All controllers</td><td>Remove — routes defined inline in Minimal API</td></tr>
+            <tr><td><code>[FromBody]</code> attribute</td><td>TaxFilingsController, TaxDocumentsController</td><td>Remove — implicit in Minimal API POST/PUT handlers</td></tr>
+            <tr><td>Manual <code>new TaxFilingService()</code> instantiation</td><td>All controllers &amp; services</td><td>Replace with constructor injection via built-in DI</td></tr>
+            <tr><td><code>Web.config</code> / <code>appSettings</code></td><td>Web.config</td><td>Replace with <code>appsettings.json</code></td></tr>
+            <tr><td><code>packages.config</code> (pre-SDK NuGet)</td><td>packages.config</td><td>Replace with <code>&lt;PackageReference&gt;</code> in SDK-style <code>.csproj</code></td></tr>
+            <tr><td><code>static</code> shared mutable state</td><td>InMemoryTaxRepository.cs</td><td><span class="risk-blocker">Risk</span> — must register as Singleton in DI; not thread-safe</td></tr>
+            <tr><td>Newtonsoft.Json as default serialiser</td><td>packages.config</td><td>.NET 8 defaults to <code>System.Text.Json</code> — decision required</td></tr>
+            <tr><td>No async/await anywhere</td><td>All services and controllers</td><td>Should become <code>async Task&lt;IResult&gt;</code> in Minimal API</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 7. File Impact -->
+    <section id="s7">
+      <h2><span class="section-num">7</span> File-Level Migration Impact Analysis</h2>
+      <div class="stat-grid">
+        <div class="stat-card green"><div class="stat-value">9</div><div class="stat-label">Reuse as-is</div></div>
+        <div class="stat-card yellow"><div class="stat-value">6</div><div class="stat-label">Minor refactor (DI)</div></div>
+        <div class="stat-card red"><div class="stat-value">5</div><div class="stat-label">Controllers — rewrite</div></div>
+        <div class="stat-card blue"><div class="stat-value">5</div><div class="stat-label">Delete / replace infra</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Impact</th><th>Action Required</th></tr></thead>
+          <tbody>
+            <tr><td><code>Global.asax.cs</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Delete; replaced by <code>Program.cs</code></td></tr>
+            <tr><td><code>Global.asax</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Delete; IIS lifecycle hook not used in .NET 8</td></tr>
+            <tr><td><code>Web.config</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Delete; replaced by <code>appsettings.json</code></td></tr>
+            <tr><td><code>packages.config</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Delete; use <code>&lt;PackageReference&gt;</code> in SDK <code>.csproj</code></td></tr>
+            <tr><td><code>*.csproj</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Create new SDK-style <code>.csproj</code> targeting <code>net8.0</code></td></tr>
+            <tr><td><code>App_Start/WebApiConfig.cs</code></td><td><span class="impact impact-red">🔴 Replace</span></td><td>Delete; route config moves into <code>Program.cs</code></td></tr>
+            <tr><td><code>Controllers/TaxPayersController.cs</code></td><td><span class="impact impact-red">🔴 Rewrite</span></td><td>Remove <code>ApiController</code>; convert 3 actions to Minimal API endpoints</td></tr>
+            <tr><td><code>Controllers/TaxFilingsController.cs</code></td><td><span class="impact impact-red">🔴 Rewrite</span></td><td>Remove <code>ApiController</code>; convert 7 actions to Minimal API endpoints</td></tr>
+            <tr><td><code>Controllers/TaxDocumentsController.cs</code></td><td><span class="impact impact-red">🔴 Rewrite</span></td><td>Remove <code>ApiController</code>; convert 2 actions to Minimal API endpoints</td></tr>
+            <tr><td><code>Controllers/AuditController.cs</code></td><td><span class="impact impact-red">🔴 Rewrite</span></td><td>Remove <code>ApiController</code>; convert 1 action to Minimal API endpoint</td></tr>
+            <tr><td><code>Controllers/DashboardController.cs</code></td><td><span class="impact impact-red">🔴 Rewrite</span></td><td>Remove <code>ApiController</code>; convert 1 action to Minimal API endpoint</td></tr>
+            <tr><td><code>Services/TaxCalculationService.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure calculation logic; no framework dependency. Namespace update only.</td></tr>
+            <tr><td><code>Services/TaxValidationService.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure validation logic; no framework dependency. Namespace update only.</td></tr>
+            <tr><td><code>Services/InMemoryTaxRepository.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove <code>static</code>; register as <code>Singleton</code> via DI</td></tr>
+            <tr><td><code>Services/TaxPayerService.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove manual <code>new</code>; inject <code>InMemoryTaxRepository</code> via DI</td></tr>
+            <tr><td><code>Services/TaxFilingService.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove <code>new TaxValidationService()</code> / <code>new AuditService()</code>; inject via DI</td></tr>
+            <tr><td><code>Services/TaxDocumentService.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove <code>new AuditService()</code>; inject via DI</td></tr>
+            <tr><td><code>Services/AuditService.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove static repository dependency; inject via DI</td></tr>
+            <tr><td><code>Services/DashboardService.cs</code></td><td><span class="impact impact-yellow">🟡 Refactor</span></td><td>Remove <code>new TaxCalculationService()</code>; inject via DI</td></tr>
+            <tr><td><code>Models/TaxPayer.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>Models/TaxFiling.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>Models/TaxDocument.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>Models/AuditEvent.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>DTOs/AssignReviewerRequest.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>DTOs/CreateTaxDocumentRequest.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>DTOs/DashboardSummary.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>DTOs/ReviewStatusUpdateRequest.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+            <tr><td><code>DTOs/TaxCalculationResult.cs</code></td><td><span class="impact impact-green">🟢 Reuse</span></td><td>Pure POCO. Namespace update only.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8. Risks -->
+    <section id="s8">
+      <h2><span class="section-num">8</span> Migration Risks and Blockers</h2>
+
+      <h3>🔴 Blockers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Risk</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="risk-blocker">B1</span></td>
+              <td><strong>System.Web dependency</strong></td>
+              <td>The entire hosting model (<code>System.Web.HttpApplication</code>, IIS/System.Web pipeline) is incompatible with .NET 8. All controllers and hosting infrastructure must be rewritten from scratch.</td>
+            </tr>
+            <tr>
+              <td><span class="risk-blocker">B2</span></td>
+              <td><strong>Static mutable shared state</strong></td>
+              <td><code>InMemoryTaxRepository</code> uses <code>static readonly List&lt;T&gt;</code> fields. Must be refactored into a Singleton-registered instance class — left as-is it is untestable and not thread-safe.</td>
+            </tr>
+            <tr>
+              <td><span class="risk-blocker">B3</span></td>
+              <td><strong>No DI container</strong></td>
+              <td>All service dependencies are newed up manually, making unit testing impractical. Introducing DI is a prerequisite for clean .NET 8 code.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>🟡 Risks</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Risk</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><span class="risk-medium">R1</span></td><td><strong>Newtonsoft.Json vs System.Text.Json</strong></td><td>.NET 8 defaults to <code>System.Text.Json</code>. Property naming conventions, null handling, and circular reference behaviour differ. Decision required before migration.</td></tr>
+            <tr><td><span class="risk-medium">R2</span></td><td><strong>Synchronous I/O</strong></td><td>All service methods are synchronous. Minimal API strongly favours <code>async Task&lt;IResult&gt;</code>. Mixing sync/async can cause thread-pool starvation under load.</td></tr>
+            <tr><td><span class="risk-medium">R3</span></td><td><strong>N-call calculation in Dashboard</strong></td><td><code>DashboardService.GetSummary()</code> calls <code>Calculate()</code> for every filing. Acceptable with in-memory data; becomes a bottleneck with a real database.</td></tr>
+            <tr><td><span class="risk-medium">R4</span></td><td><strong>No authentication / authorisation</strong></td><td>No auth middleware exists anywhere. <code>RequireAuthorization()</code> is easy to add in .NET 8 but policy design must be defined first.</td></tr>
+            <tr><td><span class="risk-medium">R5</span></td><td><strong>Denormalised TaxPayerName</strong></td><td><code>TaxFiling.TaxPayerName</code> duplicates <code>TaxPayer.TaxPayerName</code>. If a taxpayer is renamed, filings become stale. No FK enforcement exists.</td></tr>
+            <tr><td><span class="risk-medium">R6</span></td><td><strong>String-typed enums</strong></td><td><code>ReviewStatus</code>, <code>FilingType</code>, <code>RiskBand</code>, <code>EventType</code> are all free-text strings with no compile-time safety. Changing to <code>enum</code> is a breaking API change.</td></tr>
+            <tr><td><span class="risk-medium">R7</span></td><td><strong>Thread safety of static lists</strong></td><td><code>List&lt;T&gt;</code> is not thread-safe. Concurrent POST requests can corrupt in-memory lists. A Singleton repository needs <code>ConcurrentBag</code> or locks.</td></tr>
+            <tr><td><span class="risk-medium">R8</span></td><td><strong>No error handling middleware</strong></td><td>Unhandled exceptions return raw 500 responses with stack traces in debug mode. <code>app.UseExceptionHandler()</code> or a <code>Results.Problem()</code> wrapper must be added.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 9. Migration Sequence -->
+    <section id="s9">
+      <h2><span class="section-num">9</span> Recommended Migration Sequence</h2>
+      <p>Minimises risk by migrating infrastructure first, then business logic, then endpoints.</p>
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">1</div><div class="phase-title">Project Bootstrap</div></div>
+          <div class="phase-body"><ol>
+            <li>Create a new SDK-style <code>.csproj</code> targeting <code>net8.0</code></li>
+            <li>Create <code>Program.cs</code> with <code>WebApplication.CreateBuilder()</code></li>
+            <li>Replace <code>Web.config</code> with <code>appsettings.json</code></li>
+            <li>Add NuGet packages: <code>Microsoft.AspNetCore.OpenApi</code>, optionally <code>Swashbuckle.AspNetCore</code></li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">2</div><div class="phase-title">Models and DTOs — Reuse</div></div>
+          <div class="phase-body"><ol>
+            <li>Copy all files from <code>Models/</code> and <code>DTOs/</code> with namespace updated to the new project</li>
+            <li>No logic changes required in either layer</li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">3</div><div class="phase-title">Service Layer Refactor — Introduce DI</div></div>
+          <div class="phase-body"><ol>
+            <li>Convert <code>InMemoryTaxRepository</code> from <code>static</code> to an instance class; register as <code>Singleton</code></li>
+            <li>Inject <code>InMemoryTaxRepository</code> into all services via constructor injection</li>
+            <li>Inject <code>TaxValidationService</code> and <code>AuditService</code> into the services that depend on them</li>
+            <li>Register all services in <code>Program.cs</code> via <code>builder.Services.AddSingleton / AddScoped</code></li>
+            <li><code>TaxCalculationService</code> and <code>TaxValidationService</code> require no changes beyond namespace</li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">4</div><div class="phase-title">Minimal API Endpoints</div></div>
+          <div class="phase-body"><ol>
+            <li>Replace each controller action with an <code>app.Map*()</code> call — one endpoint extension file per domain area</li>
+            <li>Replace <code>IHttpActionResult</code> returns with <code>Results.Ok()</code>, <code>Results.NotFound()</code>, <code>Results.BadRequest()</code></li>
+            <li>Remove all <code>[FromBody]</code> attributes — implicit in Minimal API</li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">5</div><div class="phase-title">Serialisation and Error Handling</div></div>
+          <div class="phase-body"><ol>
+            <li>Decide: keep <code>System.Text.Json</code> (recommended) or add <code>AddNewtonsoftJson()</code></li>
+            <li>Add global exception handling via <code>app.UseExceptionHandler()</code> or <code>Results.Problem()</code></li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">6</div><div class="phase-title">Validation and API Hardening</div></div>
+          <div class="phase-body"><ol>
+            <li>Add <code>FluentValidation</code> or <code>DataAnnotations</code> for request validation in Minimal API</li>
+            <li>Consider strongly-typed enums or constants for <code>ReviewStatus</code>, <code>FilingType</code>, <code>RiskBand</code></li>
+          </ol></div>
+        </div>
+        <div class="phase">
+          <div class="phase-header"><div class="phase-num">7</div><div class="phase-title">OpenAPI / Swagger</div></div>
+          <div class="phase-body"><ol>
+            <li>Add <code>AddOpenApi()</code> and configure Swagger UI for endpoint documentation</li>
+            <li>Add <code>.WithName()</code> and <code>.WithSummary()</code> to each endpoint</li>
+          </ol></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Endpoint Mapping -->
+    <section id="s10">
+      <h2><span class="section-num">10</span> Controller-to-Endpoint Mapping</h2>
+      <p>Direct mapping from legacy controller actions to .NET 8 Minimal API equivalents. <strong>14 endpoints across 5 controllers → 14 Minimal API route registrations.</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Legacy Action</th><th>Method</th><th>Route</th><th>Minimal API Registration</th></tr></thead>
+          <tbody>
+            <tr><td>TaxPayersController.GetTaxPayers</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxpayers</code></td><td><code>app.MapGet("/api/taxpayers", ...)</code></td></tr>
+            <tr><td>TaxPayersController.GetTaxPayer</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxpayers/{id}</code></td><td><code>app.MapGet("/api/taxpayers/{id}", ...)</code></td></tr>
+            <tr><td>TaxPayersController.CreateTaxPayer</td><td><span class="method method-POST">POST</span></td><td><code>/api/taxpayers</code></td><td><code>app.MapPost("/api/taxpayers", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.GetTaxFilings</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxfilings</code></td><td><code>app.MapGet("/api/taxfilings", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.GetTaxFiling</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxfilings/{id}</code></td><td><code>app.MapGet("/api/taxfilings/{id}", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.CreateTaxFiling</td><td><span class="method method-POST">POST</span></td><td><code>/api/taxfilings</code></td><td><code>app.MapPost("/api/taxfilings", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.GetTaxCalculation</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxfilings/{id}/calculation</code></td><td><code>app.MapGet("/api/taxfilings/{id}/calculation", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.UpdateReviewStatus</td><td><span class="method method-PUT">PUT</span></td><td><code>/api/taxfilings/{id}/status</code></td><td><code>app.MapPut("/api/taxfilings/{id}/status", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.AssignReviewer</td><td><span class="method method-PUT">PUT</span></td><td><code>/api/taxfilings/{id}/reviewer</code></td><td><code>app.MapPut("/api/taxfilings/{id}/reviewer", ...)</code></td></tr>
+            <tr><td>TaxFilingsController.DeleteTaxFiling</td><td><span class="method method-DELETE">DELETE</span></td><td><code>/api/taxfilings/{id}</code></td><td><code>app.MapDelete("/api/taxfilings/{id}", ...)</code></td></tr>
+            <tr><td>TaxDocumentsController.GetDocuments</td><td><span class="method method-GET">GET</span></td><td><code>/api/taxfilings/{filingId}/documents</code></td><td><code>app.MapGet("/api/taxfilings/{filingId}/documents", ...)</code></td></tr>
+            <tr><td>TaxDocumentsController.AddDocument</td><td><span class="method method-POST">POST</span></td><td><code>/api/taxfilings/{filingId}/documents</code></td><td><code>app.MapPost("/api/taxfilings/{filingId}/documents", ...)</code></td></tr>
+            <tr><td>AuditController.GetAuditEvents</td><td><span class="method method-GET">GET</span></td><td><code>/api/audit</code></td><td><code>app.MapGet("/api/audit", ...)</code></td></tr>
+            <tr><td>DashboardController.GetSummary</td><td><span class="method method-GET">GET</span></td><td><code>/api/dashboard/summary</code></td><td><code>app.MapGet("/api/dashboard/summary", ...)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <strong>Recommended grouping</strong> using <code>RouteGroupBuilder</code>:
+        <div style="margin-top:10px; font-family: 'Cascadia Code', monospace; font-size: 13px; line-height: 2.1; color: var(--text);">
+          /api/taxpayers &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ TaxPayerEndpoints.MapRoutes(app)<br>
+          /api/taxfilings &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ TaxFilingEndpoints.MapRoutes(app)<br>
+          /api/taxfilings/.../documents →  TaxDocumentEndpoints.MapRoutes(app)<br>
+          /api/audit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ AuditEndpoints.MapRoutes(app)<br>
+          /api/dashboard &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ DashboardEndpoints.MapRoutes(app)
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. Assumptions -->
+    <section id="s11">
+      <h2><span class="section-num">11</span> Assumptions and Missing Information</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Item</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A1</strong></td><td><strong>No unit tests</strong></td><td>No test project was found in the repository. There is no automated safety net for the migration. Characterisation tests are strongly recommended before migrating.</td></tr>
+            <tr><td><strong>A2</strong></td><td><strong>No authentication</strong></td><td>No auth layer exists anywhere. Analysis assumes auth will be added as a separate concern post-migration.</td></tr>
+            <tr><td><strong>A3</strong></td><td><strong>In-memory data is intentional</strong></td><td>The static repository appears to be a deliberate demo/workshop choice. A production migration would replace this with EF Core or another real data layer.</td></tr>
+            <tr><td><strong>A4</strong></td><td><strong>TaxPayerId is not enforced</strong></td><td>Filings reference a <code>TaxPayerId</code> but no validation confirms the taxpayer exists. This data integrity gap exists in the legacy code and would carry over as-is.</td></tr>
+            <tr><td><strong>A5</strong></td><td><strong>FilingType is not validated against allowed values</strong></td><td>The calculation engine uses <code>"Individual"</code> and <code>"Partnership"</code>, and falls back to a corporate rate for all other values — silently.</td></tr>
+            <tr><td><strong>A6</strong></td><td><strong>No CORS, no HTTPS configuration</strong></td><td><code>Web.config</code> has no HTTPS or CORS settings. Both must be explicitly configured in .NET 8.</td></tr>
+            <tr><td><strong>A7</strong></td><td><strong>No logging</strong></td><td>No <code>ILogger</code> or logging framework is used anywhere. Built-in structured logging via <code>ILogger&lt;T&gt;</code> should be injected into services during migration.</td></tr>
+            <tr><td><strong>A8</strong></td><td><strong>Thread safety not tested</strong></td><td>The static <code>List&lt;T&gt;</code> is not thread-safe. Not verified as a bug in this demo context, but a real risk in any concurrent production scenario.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div style="border-top:1px solid #2e3250; padding-top:18px; margin-top:8px; color:#57606a; font-size:12px;">
+    Legacy Tax Portal — Migration Analysis Report &nbsp;·&nbsp; Source: .NET Framework 4.8 ASP.NET Web API &nbsp;·&nbsp; Target: .NET 8 Minimal API
+    <br><span style="font-size:11px; color:#444d5a;">Made with IBM Bob</span>
+  </div>
+</footer>
+
+</body>
+</html>

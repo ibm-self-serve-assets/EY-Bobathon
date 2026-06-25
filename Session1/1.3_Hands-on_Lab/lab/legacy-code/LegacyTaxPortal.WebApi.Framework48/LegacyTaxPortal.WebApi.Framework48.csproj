@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4D1C09F8-1F34-4F5E-9A6A-0E7F8B901001}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>LegacyTaxPortal.WebApi.Framework48</RootNamespace>
+    <AssemblyName>LegacyTaxPortal.WebApi.Framework48</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Http" />
+    <Reference Include="System.Web.Http.WebHost" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AuditController.cs" />
+    <Compile Include="Controllers\DashboardController.cs" />
+    <Compile Include="Controllers\TaxDocumentsController.cs" />
+    <Compile Include="Controllers\TaxFilingsController.cs" />
+    <Compile Include="Controllers\TaxPayersController.cs" />
+    <Compile Include="DTOs\AssignReviewerRequest.cs" />
+    <Compile Include="DTOs\CreateTaxDocumentRequest.cs" />
+    <Compile Include="DTOs\DashboardSummary.cs" />
+    <Compile Include="DTOs\ReviewStatusUpdateRequest.cs" />
+    <Compile Include="DTOs\TaxCalculationResult.cs" />
+    <Compile Include="Models\AuditEvent.cs" />
+    <Compile Include="Models\TaxDocument.cs" />
+    <Compile Include="Models\TaxFiling.cs" />
+    <Compile Include="Models\TaxPayer.cs" />
+    <Compile Include="Services\AuditService.cs" />
+    <Compile Include="Services\DashboardService.cs" />
+    <Compile Include="Services\InMemoryTaxRepository.cs" />
+    <Compile Include="Services\TaxCalculationService.cs" />
+    <Compile Include="Services\TaxDocumentService.cs" />
+    <Compile Include="Services\TaxFilingService.cs" />
+    <Compile Include="Services\TaxPayerService.cs" />
+    <Compile Include="Services\TaxValidationService.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Global.asax" />
+    <Content Include="Web.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

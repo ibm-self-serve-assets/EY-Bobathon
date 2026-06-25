@@ -1,0 +1,428 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Code Review — ModernTaxPortal.MinimalApi.Net8</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--surface:#f7f8fa;--surface2:#eef0f5;--border:#e2e5ec;
+  --accent:#3b6ef5;--accent2:#7c5cd8;--text:#1a1d2e;--muted:#57606a;
+  --green:#10825c;--yellow:#92610a;--red:#b91c1c;--code-bg:#f0f2f7;
+  --radius:10px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:14.5px}
+.layout{display:flex;min-height:100vh}
+/* sidebar */
+.sidebar{width:248px;min-width:248px;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 0 40px;display:flex;flex-direction:column}
+.sb-logo{padding:0 20px 18px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.sb-tag{display:inline-block;background:linear-gradient(135deg,#3b6ef5,#7c5cd8);color:#fff;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:7px}
+.sb-logo h2{font-size:13px;font-weight:600;line-height:1.4}
+.sb-logo .meta{font-size:11px;color:var(--muted);margin-top:3px}
+nav a{display:block;padding:6px 20px;font-size:13px;color:var(--muted);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
+nav a:hover{color:var(--text);background:var(--surface2)}
+nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(59,110,245,0.06)}
+nav .ns{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:12px 20px 4px}
+/* main */
+.main{flex:1;min-width:0;padding:44px 52px 80px;max-width:1020px}
+/* header */
+.page-header{margin-bottom:36px}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.badge{font-size:11px;font-weight:600;letter-spacing:.5px;padding:3px 10px;border-radius:20px;border:1px solid}
+.b-green {color:#065f46;border-color:#6ee7b7;background:#d1fae5}
+.b-blue  {color:#1e3a8a;border-color:#93c5fd;background:#dbeafe}
+.b-purple{color:#4c1d95;border-color:#c4b5fd;background:#ede9fe}
+.b-yellow{color:#78350f;border-color:#fcd34d;background:#fef9c3}
+.b-red   {color:#7f1d1d;border-color:#fca5a5;background:#fee2e2}
+h1{font-size:26px;font-weight:700;line-height:1.3;margin-bottom:10px}
+.sub{color:var(--muted);font-size:14px}
+/* verdict */
+.verdict{display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:var(--radius);border:1px solid #a7f3d0;background:#d1fae5;margin-bottom:28px}
+.v-icon{font-size:28px;line-height:1}
+.v-title{font-size:15px;font-weight:700;color:#065f46}
+.v-sub{font-size:12.5px;color:#047857;margin-top:2px}
+/* counts row */
+.counts{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:36px}
+.count-card{border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;text-align:center;background:var(--surface)}
+.count-val{font-size:28px;font-weight:700;line-height:1}
+.count-lbl{font-size:11px;color:var(--muted);margin-top:4px}
+.count-card.c-crit   .count-val{color:#7f1d1d}
+.count-card.c-high   .count-val{color:#b91c1c}
+.count-card.c-medium .count-val{color:#92610a}
+.count-card.c-low    .count-val{color:#1d4ed8}
+.count-card.c-nit    .count-val{color:#57606a}
+/* section */
+section{margin-bottom:52px;scroll-margin-top:24px}
+section h2{font-size:18px;font-weight:700;padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.snum{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+p{margin-bottom:11px}
+/* finding card */
+.finding{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.finding-header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.sev-pill{font-size:10px;font-weight:700;letter-spacing:.6px;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.sev-high  {background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.sev-medium{background:#fef9c3;color:#78350f;border:1px solid #fcd34d}
+.sev-low   {background:#dbeafe;color:#1e3a8a;border:1px solid #93c5fd}
+.sev-nit   {background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.cat-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.finding-title{font-weight:600;font-size:14px;flex:1}
+.finding-body{padding:14px 18px;font-size:13.5px}
+.finding-body p{margin-bottom:8px}
+.loc{display:inline-block;margin-bottom:10px;font-size:12px;color:var(--muted);background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:2px 8px}
+code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12.5px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:#1e40af}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;margin:10px 0;color:var(--text)}
+pre .cm{color:var(--muted)}
+/* well-done */
+.well{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:var(--radius);padding:14px 18px;margin-bottom:12px;font-size:13.5px}
+.well strong{color:#065f46}
+/* table */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--surface2)}
+thead th{padding:9px 13px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+tbody tr{border-top:1px solid var(--border)}
+tbody tr:hover{background:rgba(59,110,245,0.03)}
+tbody td{padding:9px 13px;vertical-align:top}
+/* footer */
+footer{text-align:center;padding:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:var(--surface)}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-tag">Code Review</div>
+    <h2>ModernTaxPortal<br />.NET 8 Minimal API</h2>
+    <div class="meta">net8.0 · Nullable enabled</div>
+  </div>
+  <nav>
+    <div class="ns">Sections</div>
+    <a href="#s0" class="active">Summary</a>
+    <a href="#s1">High Findings</a>
+    <a href="#s2">Medium Findings</a>
+    <a href="#s3">Low Findings</a>
+    <a href="#s4">Nits</a>
+    <a href="#s5">What Was Done Well</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+
+<header class="page-header" id="s0">
+  <div class="badge-row">
+    <span class="badge b-blue">net8.0</span>
+    <span class="badge b-purple">Nullable: enable</span>
+    <span class="badge b-green">Whole project reviewed</span>
+  </div>
+  <h1>Code Review<br /><span style="font-size:20px;font-weight:500;color:var(--muted)">ModernTaxPortal.MinimalApi.Net8</span></h1>
+  <p class="sub" style="margin-top:8px">All source files reviewed: 5 endpoints · 8 services · 4 models · 5 DTOs · Program.cs</p>
+</header>
+
+
+<div class="verdict">
+  <div class="v-icon">✅</div>
+  <div>
+    <div class="v-title">Verdict: Approve with comments</div>
+    <div class="v-sub">Migration is structurally correct. Two High issues (thread safety + pagination) should be addressed before treating this as a production baseline.</div>
+  </div>
+</div>
+
+
+<div class="counts">
+  <div class="count-card c-crit">  <div class="count-val">0</div><div class="count-lbl">Critical</div></div>
+  <div class="count-card c-high">  <div class="count-val">2</div><div class="count-lbl">High</div></div>
+  <div class="count-card c-medium"><div class="count-val">5</div><div class="count-lbl">Medium</div></div>
+  <div class="count-card c-low">   <div class="count-val">4</div><div class="count-lbl">Low</div></div>
+  <div class="count-card c-nit">   <div class="count-val">4</div><div class="count-lbl">Nit</div></div>
+</div>
+
+
+<section id="s0b">
+  <p>The move from <code>ApiController</code> to <code>RouteGroupBuilder</code>-based Minimal API endpoints is well-executed. DI has been properly introduced and the repository's static-state problem has been resolved. The code reads clearly and is appropriate for a workshop demo.</p>
+  <p>Two High issues need attention before this is treated as a production-capable baseline. The most important is <strong>thread safety</strong> — the Singleton repository holds plain <code>List&lt;T&gt;</code> collections that are read and written concurrently by every request. The second High is <strong>unbounded collection endpoints</strong> with no pagination. A cluster of Medium findings covers missing input validation on create-taxpayer, inconsistent 404/400 semantics on status and reviewer updates, the N-call dashboard calculation pattern, and a complete absence of tests.</p>
+</section>
+
+
+<section id="s1">
+  <h2><span class="snum">H</span> High Findings</h2>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-high">HIGH</span>
+      <span class="cat-pill">Async-Threading</span>
+      <span class="finding-title">H1 — Concurrent writes to <code>List&lt;T&gt;</code> in a Singleton service</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">InMemoryTaxRepository.cs · TaxFilingService.cs:39,70 · TaxDocumentService.cs:34 · TaxPayerService.cs:25 · AuditService.cs:23</div>
+      <p><code>List&lt;T&gt;</code> is not thread-safe. Every HTTP request shares the same Singleton repository. Two concurrent <code>POST /api/taxfilings</code> requests can both execute the <code>Max + 1</code> ID calculation simultaneously, then both call <code>.Add()</code>, producing duplicate IDs or list corruption. The same race exists on every other write path.</p>
+      <p><strong>Fix:</strong> expose a private lock from the repository and acquire it around all read-then-write operations, or use <code>Interlocked.Increment</code> on a pre-seeded counter field:</p>
+      <pre><span class="cm">// InMemoryTaxRepository — replace Max() with a thread-safe counter</span>
+private int _nextFilingId;
+
+public InMemoryTaxRepository()
+{
+    _nextFilingId = Filings.Count &gt; 0 ? Filings.Max(f =&gt; f.Id) : 0;
+}
+
+public int NextFilingId() =&gt; Interlocked.Increment(ref _nextFilingId);
+
+<span class="cm">// TaxFilingService.Create — lock the Add() as well</span>
+private readonly Lock _lock = new();
+
+public TaxFiling Create(TaxFiling filing)
+{
+    lock (_lock)
+    {
+        filing.Id = _repository.NextFilingId();
+        _repository.Filings.Add(filing);
+    }
+    ...
+}</pre>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-high">HIGH</span>
+      <span class="cat-pill">Performance</span>
+      <span class="finding-title">H2 — Unbounded collection endpoints — no pagination</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxFilingEndpoints.cs:15 · TaxPayerEndpoints.cs:14 · AuditEndpoints.cs:13</div>
+      <p><code>GET /api/taxfilings</code>, <code>GET /api/taxpayers</code>, and <code>GET /api/audit</code> return the entire list on every call. Any consumer written against these endpoints will assume the "return everything" contract. When the data grows there is no floor preventing a full scan from being serialised into a single response.</p>
+      <p><strong>Fix:</strong> add even minimal pagination query parameters:</p>
+      <pre>group.MapGet("/", (int page = 1, int pageSize = 50, TaxFilingService svc) =&gt;
+{
+    var items = svc.GetAll().Skip((page - 1) * pageSize).Take(pageSize);
+    return Results.Ok(items);
+});</pre>
+    </div>
+  </div>
+</section>
+
+
+<section id="s2">
+  <h2><span class="snum">M</span> Medium Findings</h2>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-medium">MEDIUM</span>
+      <span class="cat-pill">Architecture / Security</span>
+      <span class="finding-title">M1 — <code>CreateTaxPayer</code> has no input validation</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxPayerEndpoints.cs:29-34 · TaxPayerService.cs:19-27</div>
+      <p><code>POST /api/taxpayers</code> accepts any <code>TaxPayer</code> body and persists it immediately — no checks for required fields (<code>TaxPayerName</code>, <code>TaxIdentifier</code>, <code>EntityType</code>). By contrast, <code>POST /api/taxfilings</code> runs through <code>TaxValidationService</code>. The gap is inconsistent and means callers can persist empty or meaningless taxpayer records.</p>
+      <p><strong>Fix:</strong> add a <code>ValidateTaxPayer</code> method to <code>TaxValidationService</code> (or a dedicated validator) and call it from <code>TaxPayerService.Create</code> or the endpoint, mirroring the filing pattern.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-medium">MEDIUM</span>
+      <span class="cat-pill">Architecture</span>
+      <span class="finding-title">M2 — Status and reviewer update endpoints return 400 for a missing resource</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxFilingEndpoints.cs:50-65 · TaxFilingService.cs:44-62</div>
+      <p>Both <code>UpdateStatus</code> and <code>AssignReviewer</code> return <code>Results.BadRequest(...)</code> for every failure, including when the filing ID does not exist. HTTP 400 means the request is malformed; a non-existent resource should be 404. The service's <code>bool</code> return type cannot distinguish the two cases.</p>
+      <p><strong>Fix:</strong> split the lookup from the validation check in the endpoint, returning <code>NotFound</code> or <code>BadRequest</code> separately:</p>
+      <pre>group.MapPut("/{id:int}/status", (int id, ReviewStatusUpdateRequest req, TaxFilingService svc) =&gt;
+{
+    var filing = svc.GetById(id);
+    if (filing is null) return Results.NotFound();
+    return svc.UpdateStatus(filing, req) ? Results.Ok() : Results.BadRequest("Invalid review status.");
+});</pre>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-medium">MEDIUM</span>
+      <span class="cat-pill">Performance</span>
+      <span class="finding-title">M3 — Dashboard recalculates every filing's tax on every request</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">DashboardService.cs:27</div>
+      <pre>TotalEstimatedTax = filings.Sum(f =&gt; _calculationService.Calculate(f).EstimatedTax)</pre>
+      <p><code>Calculate</code> is invoked once per filing on every <code>GET /api/dashboard/summary</code> call. With three seed rows this is invisible; with a growing dataset or a frequently-polled dashboard this becomes N recalculations per request.</p>
+      <p><strong>Fix:</strong> cache the summary result with a short TTL using <code>IMemoryCache</code>, or pre-compute and store <code>EstimatedTax</code> on the filing when it is created. At minimum, add a comment acknowledging the trade-off.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-medium">MEDIUM</span>
+      <span class="cat-pill">Architecture</span>
+      <span class="finding-title">M4 — Domain models used directly as HTTP request/response bodies</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">Models/TaxFiling.cs · Models/TaxPayer.cs (used as POST body and response shape)</div>
+      <p><code>TaxFiling</code> simultaneously serves as the HTTP request body for <code>POST /api/taxfilings</code>, the domain/storage model, and the API response. Adding an internal-only field exposes it to callers; changing a serialisation requirement means touching the domain model. For a demo this is an acceptable simplification, but worth noting if this code is used as a production-pattern reference.</p>
+      <p><strong>Fix:</strong> introduce separate <code>CreateTaxFilingRequest</code> and <code>TaxFilingResponse</code> DTOs that are mapped to/from the domain model inside the endpoint or service.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-medium">MEDIUM</span>
+      <span class="cat-pill">Testing</span>
+      <span class="finding-title">M5 — No tests</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">Project root — no test project found</div>
+      <p>There are no unit or integration tests. The migration introduced real logic differences (DI wiring, nullable model properties, modified ID generation) that are not verified automatically. High-value unit test targets that require no HTTP infrastructure:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Target</th><th>Key cases to cover</th></tr></thead>
+          <tbody>
+            <tr><td><code>TaxValidationService.ValidateFiling</code></td><td>All branches, deduction-exceeds-income edge case</td></tr>
+            <tr><td><code>TaxCalculationService.Calculate</code></td><td>Each filing type, each risk band threshold boundary</td></tr>
+            <tr><td><code>TaxFilingService.UpdateStatus</code></td><td>Valid status, invalid status, non-existent filing ID</td></tr>
+            <tr><td><code>TaxPayerService.Create</code></td><td>ID auto-assignment when list is empty vs. non-empty</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Recommended approach:</strong> add an <code>xUnit</code> test project with direct service instantiation over a fresh <code>InMemoryTaxRepository</code> — no mocking framework required.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="s3">
+  <h2><span class="snum">L</span> Low Findings</h2>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-low">LOW</span>
+      <span class="cat-pill">Performance</span>
+      <span class="finding-title">L1 — ID generation is O(N) on every create</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxFilingService.cs:33 · TaxPayerService.cs:21 · TaxDocumentService.cs:26 · AuditService.cs:19</div>
+      <p>Every create operation calls <code>.Max(x =&gt; x.Id)</code> over the full list. A simple counter field on the repository, seeded from the list max at construction time, makes ID assignment O(1) and also resolves the race in H1 when combined with <code>Interlocked.Increment</code>.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-low">LOW</span>
+      <span class="cat-pill">Style</span>
+      <span class="finding-title">L2 — Repeated magic strings for status values, filing types, risk bands</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxValidationService.cs:38 · TaxCalculationService.cs:34,41 · DashboardService.cs:23-26 · TaxFilingService.cs:35-37</div>
+      <p><code>"Draft"</code>, <code>"Under Review"</code>, <code>"Approved"</code>, <code>"Rejected"</code>, <code>"Individual"</code>, <code>"Corporate"</code>, <code>"Partnership"</code>, <code>"High"</code>, <code>"Medium"</code>, <code>"Low"</code> appear as repeated literals across multiple files. A misspelling silently produces wrong behaviour. Centralise as <code>static class</code> constants or C# <code>enum</code> types:</p>
+      <pre>public static class ReviewStatuses
+{
+    public const string Draft       = "Draft";
+    public const string UnderReview = "Under Review";
+    public const string Approved    = "Approved";
+    public const string Rejected    = "Rejected";
+}</pre>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-low">LOW</span>
+      <span class="cat-pill">Architecture</span>
+      <span class="finding-title">L3 — No global exception handling middleware</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">Program.cs</div>
+      <p>Unhandled exceptions produce a raw 500 with an empty body in non-Development environments. Add a minimal problem-details handler:</p>
+      <pre>app.UseExceptionHandler(errApp =&gt; errApp.Run(async ctx =&gt;
+{
+    ctx.Response.StatusCode  = StatusCodes.Status500InternalServerError;
+    ctx.Response.ContentType = "application/problem+json";
+    await ctx.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+}));</pre>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-low">LOW</span>
+      <span class="cat-pill">Style</span>
+      <span class="finding-title">L4 — Null guard on request body is unreachable with nullable enabled</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxPayerEndpoints.cs:31 · TaxDocumentEndpoints.cs:22</div>
+      <p>With <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> and ASP.NET Core's Minimal API model binding, the framework returns 400 before the handler is invoked when the JSON body is missing or malformed — the parameter is never <code>null</code> inside the lambda. These guards are harmless but misleading, implying a code path that is never exercised. Remove them and rely on the framework's built-in 400 response for malformed bodies.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="s4">
+  <h2><span class="snum">N</span> Nits</h2>
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-nit">NIT</span>
+      <span class="cat-pill">Style</span>
+      <span class="finding-title">N1 — Use <code>0m</code> not <code>0</code> in effective-rate ternary</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxCalculationService.cs:14</div>
+      <p>The <code>0</code> literal in <code>... ? 0 : estimatedTax / filing.AnnualIncome</code> is an <code>int</code>, widened to <code>decimal</code> by the compiler. Write <code>0m</code> explicitly to document intent: <code>filing.AnnualIncome == 0m ? 0m : estimatedTax / filing.AnnualIncome</code>.</p>
+    </div>
+  </div>
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-nit">NIT</span>
+      <span class="cat-pill">Style</span>
+      <span class="finding-title">N2 — Consider <code>TypedResults</code> instead of <code>Results</code> in endpoints</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">All Endpoints/*.cs files</div>
+      <p><code>TypedResults.Ok&lt;T&gt;()</code>, <code>TypedResults.NotFound()</code> etc. make return types explicit in the method signature, improving the generated OpenAPI schema with no behaviour change.</p>
+    </div>
+  </div>
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-nit">NIT</span>
+      <span class="cat-pill">Architecture</span>
+      <span class="finding-title">N3 — Default-value assignment in <code>Create</code> belongs in the repository or a factory</span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">TaxFilingService.cs:35-37</div>
+      <p>The three <code>string.IsNullOrWhiteSpace</code> ternaries for <code>ReviewStatus</code>, <code>AssignedReviewer</code>, <code>RiskBand</code> are good candidates for being pushed into a <code>TaxFiling</code> factory method or the model's property initializers, so <code>TaxFilingService.Create</code> doesn't carry defaulting responsibility.</p>
+    </div>
+  </div>
+  <div class="finding">
+    <div class="finding-header">
+      <span class="sev-pill sev-nit">NIT</span>
+      <span class="cat-pill">Style</span>
+      <span class="finding-title">N4 — Consider adding <code>app.UseHttpsRedirection()</code></span>
+    </div>
+    <div class="finding-body">
+      <div class="loc">Program.cs</div>
+      <p>Even in a demo, including <code>app.UseHttpsRedirection()</code> models the production middleware pipeline correctly and costs nothing.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="s5">
+  <h2><span class="snum">✓</span> What Was Done Well</h2>
+  <div class="well"><strong>DI wiring is correct.</strong> <code>InMemoryTaxRepository</code> is Singleton and injected into all services. The old <code>static</code> repository is gone.</div>
+  <div class="well"><strong>Nullable reference types are enabled</strong> and models use <code>= string.Empty</code> initialisers throughout — no null-forgiving operator (<code>!</code>) abuse found.</div>
+  <div class="well"><strong>Route group organisation</strong> is clean and readable. Each domain area has its own extension file with a consistent <code>MapXxxEndpoints</code> pattern.</div>
+  <div class="well"><strong><code>TaxCalculationService</code> and <code>TaxValidationService</code></strong> are properly stateless with all helpers declared <code>private static</code> — good separation of pure logic from stateful services.</div>
+  <div class="well"><strong>OpenAPI metadata</strong> (<code>.WithName()</code>, <code>.WithSummary()</code>, <code>.WithTags()</code>) is present on every endpoint — Swagger will be immediately useful without extra annotation work.</div>
+</section>
+
+</main>
+</div>
+<footer>
+  <div style="border-top:1px solid #e2e5ec;padding-top:16px;color:#57606a;font-size:12px">
+    Code Review — ModernTaxPortal.MinimalApi.Net8  ·  net8.0 Minimal API  ·  Verdict: Approve with comments
+    <br /><span style="font-size:11px;color:#9ea6b4">Made with IBM Bob</span>
+  </div>
+</footer>
+</body>
+</html>

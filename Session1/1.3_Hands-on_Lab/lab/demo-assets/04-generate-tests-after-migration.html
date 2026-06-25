@@ -1,0 +1,528 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Integration Test Report — ModernTaxPortal .NET 8</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 32px 16px 48px;
+  }
+  .wrapper { max-width: 760px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .report-header {
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  .report-header h1 { font-size: 20px; font-weight: 700; color: #1f2328; }
+  .report-header .sub {
+    font-size: 13px;
+    color: #57606a;
+    margin-top: 4px;
+  }
+  .badge-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .badge-pass  { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  .badge-info  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .badge-warn  { background: #fefce8; color: #854d0e; border: 1px solid #fde68a; }
+
+  /* ── Summary cards ── */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .card {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+  .card .val { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .card .lbl { font-size: 11px; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .card.green .val { color: #166534; }
+  .card.blue  .val { color: #1e40af; }
+  .card.red   .val { color: #dc2626; }
+  .card.muted .val { color: #57606a; }
+
+  /* ── Section titles ── */
+  h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2328;
+    margin: 28px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  h3 { font-size: 13px; font-weight: 600; color: #1f2328; margin: 18px 0 6px; }
+
+  /* ── Test file table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: #f7f8fa; }
+  th, td { padding: 7px 10px; text-align: left; border: 1px solid #e5e7eb; }
+  th { font-weight: 600; color: #1f2328; white-space: nowrap; }
+  td.pass { color: #166534; font-weight: 600; }
+  td.num  { text-align: center; font-variant-numeric: tabular-nums; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* ── Endpoint coverage grid ── */
+  .ep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ep-card {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .ep-card .method {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+  }
+  .get    { background: #dbeafe; color: #1e40af; }
+  .post   { background: #dcfce7; color: #166534; }
+  .put    { background: #fef9c3; color: #854d0e; }
+  .delete { background: #fee2e2; color: #991b1b; }
+  .ep-card .route { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; color: #1f2328; }
+  .ep-card .tests { font-size: 11px; color: #57606a; margin-top: 4px; }
+  .tick { color: #166534; margin-right: 3px; font-weight: 700; }
+
+  /* ── Individual test list ── */
+  .test-list { list-style: none; padding: 0; }
+  .test-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12.5px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .test-list li:last-child { border-bottom: none; }
+  .dot-pass {
+    flex-shrink: 0;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-top: 5px;
+  }
+  .test-name { font-family: "SFMono-Regular", Consolas, monospace; color: #1f2328; }
+  .test-dur  { margin-left: auto; white-space: nowrap; font-size: 11px; color: #57606a; }
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #57606a;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 10px 0 3px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 2px;
+  }
+
+  /* ── Assumptions / notes ── */
+  .note-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: #78350f;
+    margin-top: 10px;
+  }
+  .note-box ul { padding-left: 18px; margin-top: 4px; }
+  .note-box li { margin-bottom: 3px; }
+
+  /* ── Run command block ── */
+  .cmd {
+    background: #1f2328;
+    color: #e6edf3;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+    margin-top: 8px;
+    line-height: 1.8;
+  }
+  .cmd .prompt { color: #7c5cd8; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #8b949e;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  
+  <div class="report-header">
+    <h1>Integration Test Report</h1>
+    <div class="sub">ModernTaxPortal.MinimalApi.Net8 — Migrated from .NET Framework 4.8 ASP.NET Web API</div>
+    <div class="badge-row">
+      <span class="badge badge-pass">✓ All Tests Passed</span>
+      <span class="badge badge-info">xUnit 2.5.3 + WebApplicationFactory</span>
+      <span class="badge badge-info">.NET 8.0 Minimal API</span>
+      <span class="badge badge-warn">In-Memory Repository</span>
+    </div>
+  </div>
+
+  
+  <div class="cards">
+    <div class="card green">
+      <div class="val">63</div>
+      <div class="lbl">Total Passed</div>
+    </div>
+    <div class="card red">
+      <div class="val">0</div>
+      <div class="lbl">Failed</div>
+    </div>
+    <div class="card blue">
+      <div class="val">9</div>
+      <div class="lbl">Test Files</div>
+    </div>
+    <div class="card muted">
+      <div class="val">~1.1s</div>
+      <div class="lbl">Total Duration</div>
+    </div>
+  </div>
+
+  
+  <h2>Test File Breakdown</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>API Area</th>
+        <th class="num">Tests</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>DashboardEndpointTests.cs</td>
+        <td>GET /api/dashboard/summary</td>
+        <td class="num">4</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>TaxPayerEndpointTests.cs</td>
+        <td>GET · GET/{id} · POST /api/taxpayers</td>
+        <td class="num">6</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>TaxFilingEndpointTests.cs</td>
+        <td>GET · GET/{id} · POST · DELETE /api/taxfilings</td>
+        <td class="num">6</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>TaxCalculationEndpointTests.cs</td>
+        <td>GET /api/taxfilings/{id}/calculation</td>
+        <td class="num">10</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>StatusAndReviewerEndpointTests.cs</td>
+        <td>PUT /api/taxfilings/{id}/status &amp; /reviewer</td>
+        <td class="num">11</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>TaxDocumentEndpointTests.cs</td>
+        <td>GET · POST /api/taxfilings/{id}/documents</td>
+        <td class="num">7</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>AuditEndpointTests.cs</td>
+        <td>GET /api/audit</td>
+        <td class="num">6</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td>ValidationAndNotFoundTests.cs</td>
+        <td>Cross-cutting 400 / 404 edge cases</td>
+        <td class="num">13</td>
+        <td class="pass">✓ Pass</td>
+      </tr>
+      <tr>
+        <td><em>TaxPortalWebAppFactory.cs</em></td>
+        <td><em>Shared test infrastructure</em></td>
+        <td class="num">—</td>
+        <td class="pass"><em>✓ Infrastructure</em></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr style="background:#f0fdf4;font-weight:700">
+        <td colspan="2">TOTAL</td>
+        <td class="num">63</td>
+        <td class="pass">63 / 63 ✓</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  
+  <h2>Endpoint Coverage</h2>
+  <div class="ep-grid">
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/dashboard/summary</span>
+      <div class="tests"><span class="tick">✓</span>200 OK  •  JSON content-type  •  seeded counts  •  estimated tax &gt; 0</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxpayers</span>
+      <div class="tests"><span class="tick">✓</span>200 OK  •  ≥3 records  •  known names present</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxpayers/{id}</span>
+      <div class="tests"><span class="tick">✓</span>200 + full shape (id=1)  •  404 unknown id</div>
+    </div>
+    <div class="ep-card">
+      <span class="method post">POST</span><span class="route">/api/taxpayers</span>
+      <div class="tests"><span class="tick">✓</span>200 + assigned Id &gt; 0  •  response shape</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxfilings</span>
+      <div class="tests"><span class="tick">✓</span>200 OK  •  ≥3 records  •  descending date order</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxfilings/{id}</span>
+      <div class="tests"><span class="tick">✓</span>200 + full shape (id=2)  •  404 unknown id</div>
+    </div>
+    <div class="ep-card">
+      <span class="method post">POST</span><span class="route">/api/taxfilings</span>
+      <div class="tests"><span class="tick">✓</span>200 + defaults applied  •  400 missing name/year/type  •  400 negative income/deduction  •  400 deduction &gt; income</div>
+    </div>
+    <div class="ep-card">
+      <span class="method delete">DELETE</span><span class="route">/api/taxfilings/{id}</span>
+      <div class="tests"><span class="tick">✓</span>404 unknown id</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxfilings/{id}/calculation</span>
+      <div class="tests">
+        <span class="tick">✓</span>Corporate 21% rate (id=1)  •  taxable income  •  effective rate 0.1764  •  RiskBand Low  •  Partnership 24% (id=2)  •  Individual 10% bracket (id=3)  •  404 unknown
+      </div>
+    </div>
+    <div class="ep-card">
+      <span class="method put">PUT</span><span class="route">/api/taxfilings/{id}/status</span>
+      <div class="tests"><span class="tick">✓</span>All 4 valid statuses (Draft / Under Review / Approved / Rejected)  •  persists to GET  •  400 invalid status  •  400 unknown id</div>
+    </div>
+    <div class="ep-card">
+      <span class="method put">PUT</span><span class="route">/api/taxfilings/{id}/reviewer</span>
+      <div class="tests"><span class="tick">✓</span>200 + persists  •  400 empty name  •  400 unknown id</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/taxfilings/{id}/documents</span>
+      <div class="tests"><span class="tick">✓</span>2 seeded docs (filing 1)  •  empty list (filing 2)  •  known file names</div>
+    </div>
+    <div class="ep-card">
+      <span class="method post">POST</span><span class="route">/api/taxfilings/{id}/documents</span>
+      <div class="tests"><span class="tick">✓</span>200 + shape (filingId, name, type, uploadedBy, Id &gt; 0)  •  appears in subsequent GET  •  404 unknown filing</div>
+    </div>
+    <div class="ep-card">
+      <span class="method get">GET</span><span class="route">/api/audit</span>
+      <div class="tests"><span class="tick">✓</span>200 + JSON  •  ≥2 seeded events  •  "Created" event for filing 1  •  "ReviewStarted" by Alicia Brown  •  all fields non-empty</div>
+    </div>
+  </div>
+
+  
+  <h2>Tax Calculation Verification</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Filing</th>
+        <th>Type</th>
+        <th>Income</th>
+        <th>Deductions</th>
+        <th>Taxable Income</th>
+        <th>Rate</th>
+        <th>Est. Tax</th>
+        <th>Eff. Rate</th>
+        <th>Risk Band</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Id = 1 (Acme)</td>
+        <td>Corporate</td>
+        <td>$250,000</td>
+        <td>$40,000</td>
+        <td>$210,000</td>
+        <td>21%</td>
+        <td><strong>$44,100</strong></td>
+        <td>17.64%</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>Id = 2 (Northwind)</td>
+        <td>Partnership</td>
+        <td>$780,000</td>
+        <td>$120,000</td>
+        <td>$660,000</td>
+        <td>24%</td>
+        <td><strong>$158,400</strong></td>
+        <td>20.31%</td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Id = 3 (Priya Mehta)</td>
+        <td>Individual</td>
+        <td>$90,000</td>
+        <td>$15,000</td>
+        <td>$75,000</td>
+        <td>10%</td>
+        <td><strong>$7,500</strong></td>
+        <td>8.33%</td>
+        <td>Medium*</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:11px;color:#57606a;margin-top:6px">* Effective rate 8.33% &lt; 10% threshold triggers the Medium risk band per <code>TaxCalculationService.CalculateRiskBand()</code>.</p>
+
+  
+  <h2>All 63 Tests</h2>
+
+  <div class="group-label">Dashboard (4)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetDashboardSummary_Returns200</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDashboardSummary_ReturnsJson</span><span class="test-dur">242ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDashboardSummary_ReflectsSeededCounts</span><span class="test-dur">208ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDashboardSummary_TotalEstimatedTax_IsPositive</span><span class="test-dur">2ms</span></li>
+  </ul>
+
+  <div class="group-label">TaxPayers (6)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetAllTaxPayers_Returns200</span><span class="test-dur">592ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAllTaxPayers_ReturnsSeededList</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAllTaxPayers_ContainsExpectedNames</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetTaxPayerById_ExistingId_Returns200WithCorrectEntity</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetTaxPayerById_NonExistentId_Returns404</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateTaxPayer_ValidPayload_Returns200WithAssignedId</span><span class="test-dur">2ms</span></li>
+  </ul>
+
+  <div class="group-label">TaxFilings (6)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetAllFilings_Returns200</span><span class="test-dur">3ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAllFilings_ReturnsAtLeastThreeSeededFilings</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAllFilings_IsReturnedDescendingByDate</span><span class="test-dur">5ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetFilingById_ExistingId_Returns200WithCorrectShape</span><span class="test-dur">3ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetFilingById_NonExistentId_Returns404</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_ValidPayload_Returns200WithAssignedId</span><span class="test-dur">245ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">DeleteFiling_NonExistentId_Returns404</span><span class="test-dur">207ms</span></li>
+  </ul>
+
+  <div class="group-label">Tax Calculation (10)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_ExistingFiling_Returns200</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_ReturnsCorrectShape</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_TaxableIncomeIsIncomeMinusDeductions</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_CorporateRateIs21Percent</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_EffectiveRateIsCorrect</span><span class="test-dur">591ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_RiskBandIsLow</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId1_ReviewRecommendationIsAutoApproval</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId2_PartnershipRateIs24Percent</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_FilingId3_IndividualLowBracketRate</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_NonExistentId_Returns404</span><span class="test-dur">&lt;1ms</span></li>
+  </ul>
+
+  <div class="group-label">Status &amp; Reviewer (11)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_ValidStatus_Returns200</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_AllValidStatusValues_Return200 (Draft)</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_AllValidStatusValues_Return200 (Under Review)</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_AllValidStatusValues_Return200 (Approved)</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_AllValidStatusValues_Return200 (Rejected)</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_ValidStatus_PersistsChange</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_InvalidStatus_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">UpdateStatus_NonExistentId_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AssignReviewer_ValidRequest_Returns200</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AssignReviewer_ValidRequest_PersistsChange</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AssignReviewer_EmptyReviewerName_Returns400</span><span class="test-dur">479ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AssignReviewer_NonExistentId_Returns400</span><span class="test-dur">1ms</span></li>
+  </ul>
+
+  <div class="group-label">Tax Documents (7)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetDocuments_ExistingFiling_Returns200</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDocuments_FilingId1_ReturnsTwoSeededDocuments</span><span class="test-dur">480ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDocuments_FilingId1_ContainsExpectedNames</span><span class="test-dur">89ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetDocuments_FilingWithNoDocuments_ReturnsEmptyList</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AddDocument_ValidRequest_Returns200WithDocumentData</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AddDocument_NonExistentFiling_Returns404</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AddDocument_ValidRequest_AppearsInSubsequentGetList</span><span class="test-dur">1ms</span></li>
+  </ul>
+
+  <div class="group-label">Audit Events (6)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_Returns200</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_ReturnsJson</span><span class="test-dur">471ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_ReturnsAtLeastTwoSeededEvents</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_ContainsCreatedEventForFiling1</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_ContainsReviewStartedEventForFiling2</span><span class="test-dur">4ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetAuditEvents_AllEventsHaveNonEmptyFields</span><span class="test-dur">2ms</span></li>
+  </ul>
+
+  <div class="group-label">Validation &amp; Not-Found (13)</div>
+  <ul class="test-list">
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_MissingTaxPayerName_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_MissingTaxYear_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_MissingFilingType_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_NegativeAnnualIncome_Returns400</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_NegativeDeductionAmount_Returns400</span><span class="test-dur">479ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_DeductionExceedsIncome_Returns400</span><span class="test-dur">88ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">CreateFiling_ValidationError_ResponseBodyContainsMessage</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetTaxPayerById_UnknownId_Returns404</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetFilingById_UnknownId_Returns404</span><span class="test-dur">&lt;1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">GetCalculation_UnknownFilingId_Returns404</span><span class="test-dur">1ms</span></li>
+    <li><span class="dot-pass"></span><span class="test-name">AddDocument_UnknownFilingId_Returns404</span><span class="test-dur">3ms</span></li>
+  </ul>
+
+  
+  <h2>Assumptions &amp; Notes</h2>
+  <div class="note-box">
+    <ul>
+      <li><strong>Shared in-memory state:</strong> <code>InMemoryTaxRepository</code> is a singleton — all test classes within the same factory instance share the same lists. Tests that check absolute counts use <code>≥ n</code> assertions to remain stable when other tests have added records.</li>
+      <li><strong>No HTTPS in tests:</strong> <code>WebApplicationFactory</code> uses plain HTTP internally; <code>UseHttpsRedirection</code> emits a harmless warning but does not affect test outcomes.</li>
+      <li><strong>Calculation math hand-verified:</strong> All expected values (tax amounts, rates, risk bands) were derived by tracing <code>TaxCalculationService</code> against seeded fixtures in <code>InMemoryTaxRepository</code>.</li>
+      <li><strong>Risk band edge case:</strong> Filing Id=3 (Individual, income $90k) produces an effective rate of 8.33%, which is below the 10% threshold, resulting in <em>Medium</em> (not <em>Low</em>) risk band per the service logic.</li>
+      <li><strong>Program.cs partial class:</strong> A <code>public partial class Program {}</code> declaration was appended to <code>Program.cs</code> to expose the entry-point type to <code>WebApplicationFactory&lt;Program&gt;</code>.</li>
+    </ul>
+  </div>
+
+  
+  <h2>How to Run</h2>
+  <div class="cmd">
+    <span class="prompt">#</span> From the test project directory<br />
+    cd migration-code/ModernTaxPortal.MinimalApi.Net8.Tests<br />
+    dotnet test<br /><br />
+    <span class="prompt">#</span> With verbose output<br />
+    dotnet test --verbosity normal<br /><br />
+    <span class="prompt">#</span> Filter to a single area<br />
+    dotnet test --filter "FullyQualifiedName~TaxCalculation"
+  </div>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

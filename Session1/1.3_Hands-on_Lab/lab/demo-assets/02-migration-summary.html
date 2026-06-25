@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Migration Summary — .NET Framework 4.8 → .NET 8 Minimal API</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #ffffff;
+      --surface:   #f7f8fa;
+      --surface2:  #eef0f5;
+      --border:    #e2e5ec;
+      --accent:    #3b6ef5;
+      --accent2:   #7c5cd8;
+      --text:      #1a1d2e;
+      --muted:     #57606a;
+      --green:     #10825c;
+      --yellow:    #92610a;
+      --red:       #b91c1c;
+      --code-bg:   #f0f2f7;
+      --radius:    10px;
+      --get:       #166534;
+      --post:      #1d4ed8;
+      --put:       #92400e;
+      --delete:    #991b1b;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 252px;
+      min-width: 252px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0 40px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo .logo-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #3b6ef5, #7c5cd8);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .sidebar-logo h2 { font-size: 13px; color: var(--text); font-weight: 600; line-height: 1.4; }
+    .sidebar-logo .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    nav a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    nav a:hover { color: var(--text); background: var(--surface2); }
+    nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(59,110,245,0.06); }
+    nav .nav-section {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted);
+      padding: 14px 20px 4px;
+    }
+
+    /* ── Main ── */
+    .main { flex: 1; min-width: 0; padding: 48px 56px 80px; max-width: 1060px; }
+
+    /* ── Page header ── */
+    .page-header { margin-bottom: 48px; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      padding: 3px 10px; border-radius: 20px; border: 1px solid;
+    }
+    .badge-green  { color: #065f46; border-color: #6ee7b7; background: #d1fae5; }
+    .badge-blue   { color: #1e3a8a; border-color: #93c5fd; background: #dbeafe; }
+    .badge-purple { color: #4c1d95; border-color: #c4b5fd; background: #ede9fe; }
+    .page-header h1 { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .page-header p  { color: var(--muted); font-size: 15px; }
+
+    /* ── KPI cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 28px 0; }
+    .kpi-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 22px; background: var(--surface);
+    }
+    .kpi-card .kpi-val { font-size: 34px; font-weight: 700; line-height: 1; }
+    .kpi-card .kpi-lbl { font-size: 12px; color: var(--muted); margin-top: 5px; }
+    .kpi-card.green  .kpi-val { color: var(--green); }
+    .kpi-card.blue   .kpi-val { color: var(--accent); }
+    .kpi-card.purple .kpi-val { color: var(--accent2); }
+    .kpi-card.yellow .kpi-val { color: var(--yellow); }
+
+    /* ── Build banner ── */
+    .build-banner {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 22px; border-radius: var(--radius);
+      background: #d1fae5; border: 1px solid #6ee7b7;
+      margin-bottom: 32px;
+    }
+    .build-icon { font-size: 26px; line-height: 1; }
+    .build-text { font-size: 14px; font-weight: 600; color: #065f46; }
+    .build-sub  { font-size: 12px; color: #047857; margin-top: 2px; }
+
+    /* ── Section ── */
+    section { margin-bottom: 56px; scroll-margin-top: 24px; }
+    section h2 {
+      font-size: 19px; font-weight: 700;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+      margin-bottom: 22px; display: flex; align-items: center; gap: 10px;
+    }
+    section h2 .snum {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    section h3 { font-size: 14px; font-weight: 600; color: var(--accent2); margin: 20px 0 10px; }
+    p { margin-bottom: 12px; color: var(--text); }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead tr { background: var(--surface2); }
+    thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); white-space: nowrap; }
+    tbody tr { border-top: 1px solid var(--border); }
+    tbody tr:hover { background: rgba(59,110,245,0.03); }
+    tbody td { padding: 10px 14px; vertical-align: top; }
+    tfoot td { padding: 10px 14px; font-weight: 700; background: var(--surface2); border-top: 2px solid var(--border); color: var(--accent); }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px; background: var(--code-bg);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 1px 6px; color: #1e40af;
+    }
+
+    /* ── Method badges ── */
+    .method {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.5px; padding: 2px 7px; border-radius: 4px;
+      min-width: 52px; text-align: center;
+    }
+    .get    { background: #dcfce7; color: var(--get);    border: 1px solid #bbf7d0; }
+    .post   { background: #dbeafe; color: var(--post);   border: 1px solid #bfdbfe; }
+    .put    { background: #fef3c7; color: var(--put);    border: 1px solid #fde68a; }
+    .delete { background: #fee2e2; color: var(--delete); border: 1px solid #fecaca; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 22px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px; line-height: 1.8; overflow-x: auto;
+      color: var(--text); margin-bottom: 16px;
+    }
+    pre .comment { color: var(--muted); }
+    pre .cmd     { color: var(--accent); font-weight: 600; }
+    pre .path    { color: var(--accent2); }
+    pre .good    { color: var(--green); font-weight: 600; }
+
+    /* ── File tree ── */
+    .file-tree {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px; line-height: 1.9; color: var(--text);
+      overflow-x: auto; margin-bottom: 16px;
+    }
+    .file-tree .dir   { color: var(--accent); font-weight: 600; }
+    .file-tree .file  { color: var(--text); }
+    .file-tree .annot { color: var(--muted); }
+
+    /* ── Callout ── */
+    .callout {
+      border-left: 3px solid; border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 13px 18px; margin: 16px 0; font-size: 13.5px;
+    }
+    .callout-blue   { border-color: var(--accent); background: #eff3ff; }
+    .callout-green  { border-color: #10b981;        background: #ecfdf5; }
+    .callout strong { font-weight: 700; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 14px 18px; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--surface);
+    }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    }
+    .step-body { flex: 1; }
+    .step-body .step-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+    .step-body .step-cmd   { font-family: 'Cascadia Code', monospace; font-size: 13px; color: var(--accent); }
+
+    /* ── Swagger card ── */
+    .swagger-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; margin-bottom: 20px;
+    }
+    .swagger-header {
+      background: var(--surface2); padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .swagger-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+    .swagger-body { padding: 16px 20px; font-size: 13.5px; }
+    .swagger-url {
+      font-family: 'Cascadia Code', monospace; font-size: 13px;
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px; margin: 8px 0;
+      color: var(--accent); display: block;
+    }
+    .swagger-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-top: 12px; margin-bottom: 4px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 28px; font-size: 12px; color: var(--muted);
+      border-top: 1px solid var(--border); background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-tag">Migration Summary</div>
+      <h2>ModernTaxPortal<br>.NET 8 Minimal API</h2>
+      <div class="meta">Migrated from .NET Framework 4.8</div>
+    </div>
+    <nav>
+      <div class="nav-section">Sections</div>
+      <a href="#s0" class="active">Overview</a>
+      <a href="#s1">1. Controllers Migrated</a>
+      <a href="#s2">2. Routes Created</a>
+      <a href="#s3">3. Legacy Patterns Replaced</a>
+      <a href="#s4">4. Project Structure</a>
+      <a href="#s5">5. Run Steps</a>
+      <a href="#s6">6. Swagger URL</a>
+      <a href="#s7">7. Assumptions</a>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="page-header" id="s0">
+      <div class="badge-row">
+        <span class="badge badge-green">Build ✓ 0 errors · 0 warnings</span>
+        <span class="badge badge-blue">.NET 8 Minimal API</span>
+        <span class="badge badge-purple">Swashbuckle · OpenAPI</span>
+      </div>
+      <h1>Migration Summary Report<br><span style="color:var(--muted); font-size:22px; font-weight:500;">.NET Framework 4.8 → .NET 8 Minimal API</span></h1>
+      <p style="margin-top:10px;">Full migration of <strong>LegacyTaxPortal.WebApi.Framework48</strong> into <strong>ModernTaxPortal.MinimalApi.Net8</strong>. All 14 endpoints preserved, all legacy patterns replaced.</p>
+    </header>
+
+    <!-- Build banner -->
+    <div class="build-banner">
+      <div class="build-icon">✅</div>
+      <div>
+        <div class="build-text">dotnet build — succeeded</div>
+        <div class="build-sub">0 Error(s) &nbsp;·&nbsp; 0 Warning(s) &nbsp;·&nbsp; net8.0 target</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue"> <div class="kpi-val">5</div>  <div class="kpi-lbl">Controllers migrated</div></div>
+      <div class="kpi-card green"><div class="kpi-val">14</div> <div class="kpi-lbl">Endpoints created</div></div>
+      <div class="kpi-card purple"><div class="kpi-val">13</div><div class="kpi-lbl">Legacy patterns replaced</div></div>
+      <div class="kpi-card yellow"><div class="kpi-val">8</div> <div class="kpi-lbl">Services refactored</div></div>
+    </div>
+
+    <!-- 1. Controllers -->
+    <section id="s1">
+      <h2><span class="snum">1</span> Controllers Migrated</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Legacy Controller</th><th>Endpoint File</th><th style="text-align:center;">Actions</th></tr></thead>
+          <tbody>
+            <tr><td><code>DashboardController</code></td><td><code>Endpoints/DashboardEndpoints.cs</code></td><td style="text-align:center;">1</td></tr>
+            <tr><td><code>TaxPayersController</code></td><td><code>Endpoints/TaxPayerEndpoints.cs</code></td><td style="text-align:center;">3</td></tr>
+            <tr><td><code>TaxFilingsController</code></td><td><code>Endpoints/TaxFilingEndpoints.cs</code></td><td style="text-align:center;">7</td></tr>
+            <tr><td><code>TaxDocumentsController</code></td><td><code>Endpoints/TaxDocumentEndpoints.cs</code></td><td style="text-align:center;">2</td></tr>
+            <tr><td><code>AuditController</code></td><td><code>Endpoints/AuditEndpoints.cs</code></td><td style="text-align:center;">1</td></tr>
+          </tbody>
+          <tfoot><tr><td><strong>Total</strong></td><td></td><td style="text-align:center;">14</td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. Routes -->
+    <section id="s2">
+      <h2><span class="snum">2</span> Routes Created</h2>
+      <div class="callout callout-green">
+        <strong>All routes are 100% preserved</strong> — every URL path, HTTP method, and response behaviour from the legacy application is maintained exactly.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Route</th><th>Endpoint Name</th><th>Group</th></tr></thead>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxpayers</code></td><td>GetTaxPayers</td><td>TaxPayers</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxpayers/{id}</code></td><td>GetTaxPayer</td><td>TaxPayers</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/taxpayers</code></td><td>CreateTaxPayer</td><td>TaxPayers</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxfilings</code></td><td>GetTaxFilings</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxfilings/{id}</code></td><td>GetTaxFiling</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/taxfilings</code></td><td>CreateTaxFiling</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxfilings/{id}/calculation</code></td><td>GetTaxCalculation</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method put">PUT</span></td><td><code>/api/taxfilings/{id}/status</code></td><td>UpdateReviewStatus</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method put">PUT</span></td><td><code>/api/taxfilings/{id}/reviewer</code></td><td>AssignReviewer</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method delete">DELETE</span></td><td><code>/api/taxfilings/{id}</code></td><td>DeleteTaxFiling</td><td>TaxFilings</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/taxfilings/{filingId}/documents</code></td><td>GetDocuments</td><td>TaxDocuments</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/taxfilings/{filingId}/documents</code></td><td>AddDocument</td><td>TaxDocuments</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/audit</code></td><td>GetAuditEvents</td><td>Audit</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/dashboard/summary</code></td><td>GetDashboardSummary</td><td>Dashboard</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. Legacy Patterns -->
+    <section id="s3">
+      <h2><span class="snum">3</span> Legacy Patterns Replaced</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Legacy Pattern</th><th>Replaced With (.NET 8)</th></tr></thead>
+          <tbody>
+            <tr><td><code>System.Web.HttpApplication</code> (Global.asax)</td><td><code>Program.cs</code> / <code>WebApplication.CreateBuilder()</code></td></tr>
+            <tr><td><code>ApiController</code> base class</td><td><code>app.Map*()</code> Minimal API via <code>RouteGroupBuilder</code></td></tr>
+            <tr><td><code>IHttpActionResult</code> return types</td><td><code>IResult</code> / <code>Results.Ok()</code>, <code>Results.NotFound()</code>, <code>Results.BadRequest()</code></td></tr>
+            <tr><td><code>HttpConfiguration</code> / <code>GlobalConfiguration</code></td><td><code>builder.Services.*</code> / <code>app.Use*()</code></td></tr>
+            <tr><td><code>config.MapHttpAttributeRoutes()</code></td><td><code>MapGroup()</code> + <code>app.Map*()</code> in endpoint extension methods</td></tr>
+            <tr><td><code>config.Routes.MapHttpRoute()</code></td><td>Removed — Minimal API uses explicit route registration</td></tr>
+            <tr><td><code>[Route]</code> / <code>[HttpGet]</code> / <code>[HttpPost]</code> attributes</td><td>Route defined inline in <code>MapGet/Post/Put/Delete()</code></td></tr>
+            <tr><td><code>[FromBody]</code> attribute</td><td>Implicit JSON binding — no attribute needed in Minimal API</td></tr>
+            <tr><td><code>new TaxFilingService()</code> (manual instantiation)</td><td>Constructor injection via <code>builder.Services.AddSingleton&lt;T&gt;()</code></td></tr>
+            <tr><td><code>static InMemoryTaxRepository</code></td><td>Instance class registered as <code>Singleton</code> in DI</td></tr>
+            <tr><td><code>Web.config</code> / <code>appSettings</code></td><td><code>appsettings.json</code> + <code>appsettings.Development.json</code></td></tr>
+            <tr><td><code>packages.config</code> (pre-SDK NuGet)</td><td><code>&lt;PackageReference&gt;</code> in SDK-style <code>.csproj</code></td></tr>
+            <tr><td><code>Microsoft.AspNet.WebApi</code> packages</td><td><code>Microsoft.AspNetCore.OpenApi</code> + <code>Swashbuckle.AspNetCore</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. Project Structure -->
+    <section id="s4">
+      <h2><span class="snum">4</span> Project Structure</h2>
+      <div class="file-tree">
+<span class="dir">ModernTaxPortal.MinimalApi.Net8/</span><br>
+├── <span class="dir">Endpoints/</span>                      <span class="annot">← replaces Controllers/</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">AuditEndpoints.cs</span>          <span class="annot">← AuditController (1 endpoint)</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">DashboardEndpoints.cs</span>      <span class="annot">← DashboardController (1 endpoint)</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxDocumentEndpoints.cs</span>    <span class="annot">← TaxDocumentsController (2 endpoints)</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxFilingEndpoints.cs</span>      <span class="annot">← TaxFilingsController (7 endpoints)</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">TaxPayerEndpoints.cs</span>       <span class="annot">← TaxPayersController (3 endpoints)</span><br>
+├── <span class="dir">DTOs/</span>                           <span class="annot">← reused as-is, namespace updated</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">AssignReviewerRequest.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">CreateTaxDocumentRequest.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">DashboardSummary.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">ReviewStatusUpdateRequest.cs</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">TaxCalculationResult.cs</span><br>
+├── <span class="dir">Models/</span>                         <span class="annot">← reused as-is, namespace updated</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">AuditEvent.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxDocument.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxFiling.cs</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">TaxPayer.cs</span><br>
+├── <span class="dir">Services/</span>                       <span class="annot">← refactored with DI constructors</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">AuditService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">DashboardService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">InMemoryTaxRepository.cs</span>   <span class="annot">← de-staticised, Singleton in DI</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxCalculationService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxDocumentService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxFilingService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;├── <span class="file">TaxPayerService.cs</span><br>
+│&nbsp;&nbsp;&nbsp;└── <span class="file">TaxValidationService.cs</span><br>
+├── <span class="file">Program.cs</span>                     <span class="annot">← replaces Global.asax + WebApiConfig.cs</span><br>
+├── <span class="file">appsettings.json</span>               <span class="annot">← replaces Web.config</span><br>
+├── <span class="file">appsettings.Development.json</span><br>
+└── <span class="file">ModernTaxPortal.MinimalApi.Net8.csproj</span>  <span class="annot">← SDK-style, net8.0</span>
+      </div>
+    </section>
+
+    <!-- 5. Run Steps -->
+    <section id="s5">
+      <h2><span class="snum">5</span> Run Steps</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Navigate to the project directory</div>
+            <div class="step-cmd">cd migration-code/ModernTaxPortal.MinimalApi.Net8</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Restore NuGet packages</div>
+            <div class="step-cmd">dotnet restore</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Build the project</div>
+            <div class="step-cmd">dotnet build</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Run the application</div>
+            <div class="step-cmd">dotnet run</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-blue" style="margin-top:16px;">
+        <strong>Note:</strong> The app will print its listening URL in the console after starting (typically <code>http://localhost:5000</code> or <code>https://localhost:7xxx</code>).
+      </div>
+    </section>
+
+    <!-- 6. Swagger -->
+    <section id="s6">
+      <h2><span class="snum">6</span> Swagger URL</h2>
+      <div class="swagger-card">
+        <div class="swagger-header">
+          <div class="swagger-dot"></div>
+          Swagger UI — available in Development mode
+        </div>
+        <div class="swagger-body">
+          <div class="swagger-label">Swagger UI</div>
+          <code class="swagger-url">http://localhost:&lt;port&gt;/swagger</code>
+          <div class="swagger-label">OpenAPI JSON spec</div>
+          <code class="swagger-url">http://localhost:&lt;port&gt;/swagger/v1/swagger.json</code>
+          <p style="margin-top:12px; font-size:13.5px; color:var(--muted);">
+            The port is assigned at runtime. Check the console output for the exact URL after <code>dotnet run</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Assumptions -->
+    <section id="s7">
+      <h2><span class="snum">7</span> Assumptions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Assumption</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A1</strong></td><td>The in-memory repository is intentional for this demo. All seed data from the legacy app is preserved exactly.</td></tr>
+            <tr><td><strong>A2</strong></td><td>All services are registered as <code>Singleton</code> to match the behaviour of the legacy static repository.</td></tr>
+            <tr><td><strong>A3</strong></td><td>No authentication or authorisation has been added — the legacy app had none, and auth is out of scope for this migration.</td></tr>
+            <tr><td><strong>A4</strong></td><td><code>System.Text.Json</code> (the .NET 8 default) is used for serialisation. No <code>Newtonsoft.Json</code> dependency was added.</td></tr>
+            <tr><td><strong>A5</strong></td><td>All business logic (tax calculation rates, risk band thresholds, validation rules) is preserved exactly as found in the legacy code.</td></tr>
+            <tr><td><strong>A6</strong></td><td><code>TaxValidationService</code> and <code>TaxCalculationService</code> are stateless; they are registered as <code>Singleton</code> for efficiency.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div style="border-top:1px solid #e2e5ec; padding-top:18px; margin-top:4px; color:#57606a; font-size:12px;">
+    Modern Tax Portal — Migration Summary &nbsp;·&nbsp; Source: .NET Framework 4.8 ASP.NET Web API &nbsp;·&nbsp; Target: .NET 8 Minimal API
+    <br><span style="font-size:11px; color:#9ea6b4;">Made with IBM Bob</span>
+  </div>
+</footer>
+
+</body>
+</html>
