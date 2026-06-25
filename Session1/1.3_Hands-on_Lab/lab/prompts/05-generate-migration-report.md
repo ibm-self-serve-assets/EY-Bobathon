@@ -2,8 +2,8 @@ Generate a full migration report for the `.NET Framework 4.8` ASP.NET Web API to
 
 Use both codebases:
 
-- Legacy source: `legacy-code/LegacyTaxPortal.WebApi.Framework48`
-- Migrated source: `migration-code/ModernTaxPortal.MinimalApi.Net8`
+- Legacy source: `@legacy-code/LegacyTaxPortal.WebApi.Framework48`
+- Migrated source: `@migration-code/ModernTaxPortal.MinimalApi.Net8`
 
 Create or update the migration report under:`migration-output`
 

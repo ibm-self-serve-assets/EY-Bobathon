@@ -1,8 +1,8 @@
-Analyze the legacy `.NET Framework 4.8` ASP.NET Web API tax application from `@/legacy-code`.
+Analyze the legacy `.NET Framework 4.8` ASP.NET Web API tax application from `@legacy-code`.
 
 Do not migrate or modify the application code in this phase.
 
-Create an analysis report under: `migration-output`
+Create an analysis report under: `@migration-output/`
 
 The report should explain:
 

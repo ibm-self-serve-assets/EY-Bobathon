@@ -1,4 +1,4 @@
-Generate integration tests for the migrated `.NET 8 Minimal API` from: `@/migration-code/ModernTaxPortal.MinimalApi.Net8`
+Generate integration tests for the migrated `.NET 8 Minimal API` from: `@migration-code/ModernTaxPortal.MinimalApi.Net8`
 
 Test objective:
 
