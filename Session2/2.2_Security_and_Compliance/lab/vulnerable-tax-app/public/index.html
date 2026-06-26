@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Preparation System - VULNERABLE VERSION</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="warning-banner">
+        ⚠️ VULNERABLE APPLICATION - FOR TRAINING ONLY - DO NOT USE IN PRODUCTION ⚠️
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>🧾 Tax Preparation System</h1>
+            <p class="subtitle">Intentionally Vulnerable Version for Security Training</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('taxpayer')">Taxpayer Info</button>
+            <button class="tab-button" onclick="showTab('returns')">Tax Returns</button>
+            <button class="tab-button" onclick="showTab('documents')">Documents</button>
+            <button class="tab-button" onclick="showTab('search')">Search</button>
+            <button class="tab-button" onclick="showTab('admin')">Admin</button>
+        </div>
+
+        <!-- Taxpayer Tab -->
+        <div id="taxpayer-tab" class="tab-content active">
+            <h2>Create New Taxpayer</h2>
+            <form id="taxpayer-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ssn">Social Security Number *</label>
+                        <input type="text" id="ssn" placeholder="XXX-XX-XXXX" required>
+                        <small class="vulnerability-note">❌ Stored in plaintext</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="ein">Employer ID (Optional)</label>
+                        <input type="text" id="ein" placeholder="XX-XXXXXXX">
+                        <small class="vulnerability-note">❌ Stored in plaintext</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name *</label>
+                        <input type="text" id="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" id="last_name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address">
+                </div>
+
+                <div class="form-group">
+                    <label for="bank_account">Bank Account Number</label>
+                    <input type="text" id="bank_account" placeholder="For refund direct deposit">
+                    <small class="vulnerability-note">❌ Stored in plaintext, no tokenization</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Taxpayer</button>
+            </form>
+
+            <div id="taxpayer-result" class="result-box" style="display: none;"></div>
+        </div>
+
+        <!-- Tax Returns Tab -->
+        <div id="returns-tab" class="tab-content">
+            <h2>File Tax Return</h2>
+            <form id="tax-return-form">
+                <div class="form-group">
+                    <label for="return_taxpayer_id">Taxpayer ID *</label>
+                    <input type="number" id="return_taxpayer_id" required>
+                    <small class="vulnerability-note">❌ No authentication - anyone can file for anyone</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tax_year">Tax Year *</label>
+                        <input type="number" id="tax_year" value="2024" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="filing_status">Filing Status *</label>
+                        <select id="filing_status" required>
+                            <option value="single">Single</option>
+                            <option value="married">Married Filing Jointly</option>
+                            <option value="head_of_household">Head of Household</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3>Income</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="w2_income">W-2 Income</label>
+                        <input type="number" id="w2_income" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="self_employment_income">Self-Employment Income</label>
+                        <input type="number" id="self_employment_income" step="0.01" value="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="investment_income">Investment Income</label>
+                        <input type="number" id="investment_income" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="total_income">Total Income *</label>
+                        <input type="number" id="total_income" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="total_deductions">Total Deductions</label>
+                    <input type="number" id="total_deductions" step="0.01" value="0">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Calculate & File</button>
+            </form>
+
+            <div id="tax-return-result" class="result-box" style="display: none;"></div>
+
+            <div class="section">
+                <h3>Get Tax Advice (AI-Powered)</h3>
+                <div class="form-group">
+                    <label for="advice_taxpayer_id">Taxpayer ID</label>
+                    <input type="number" id="advice_taxpayer_id">
+                    <small class="vulnerability-note">❌ Sends full PII to external AI service</small>
+                </div>
+                <button onclick="getTaxAdvice()" class="btn btn-secondary">Get AI Tax Advice</button>
+                <div id="tax-advice-result" class="result-box" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="documents-tab" class="tab-content">
+            <h2>Generate Tax Documents</h2>
+            
+            <form id="document-form">
+                <div class="form-group">
+                    <label for="doc_taxpayer_id">Taxpayer ID *</label>
+                    <input type="number" id="doc_taxpayer_id" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="doc_format">Format *</label>
+                        <select id="doc_format" required>
+                            <option value="pdf">PDF</option>
+                            <option value="txt">Text</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="doc_filename">Filename (optional)</label>
+                        <input type="text" id="doc_filename" placeholder="tax_return_2024">
+                        <small class="vulnerability-note">❌ Command Injection vulnerability</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Generate Document</button>
+            </form>
+
+            <div id="document-result" class="result-box" style="display: none;"></div>
+
+        </div>
+
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content">
+            <h2>Search Taxpayers</h2>
+            
+            <div class="search-section">
+                <h3>Search by SSN</h3>
+                <div class="form-group">
+                    <label for="search_ssn">Social Security Number</label>
+                    <input type="text" id="search_ssn" placeholder="XXX-XX-XXXX">
+                    <small class="vulnerability-note">❌ SQL Injection vulnerability</small>
+                </div>
+                <button onclick="searchBySSN()" class="btn btn-primary">Search</button>
+            </div>
+
+            <div class="search-section">
+                <h3>Search by Name</h3>
+                <div class="form-group">
+                    <label for="search_name">Name</label>
+                    <input type="text" id="search_name" placeholder="First or Last Name">
+                    <small class="vulnerability-note">❌ SQL Injection vulnerability</small>
+                </div>
+                <button onclick="searchByName()" class="btn btn-primary">Search</button>
+            </div>
+
+            <div id="search-results" class="result-box" style="display: none;"></div>
+
+        </div>
+
+        <!-- Admin Tab -->
+        <div id="admin-tab" class="tab-content">
+            <h2>Admin Panel</h2>
+            <p class="vulnerability-note">❌ No authentication required!</p>
+            
+            <button onclick="getAllTaxpayers()" class="btn btn-danger">View All Taxpayers (Unprotected)</button>
+            
+            <div id="admin-results" class="result-box" style="display: none;"></div>
+
+        </div>
+    </div>
+
+    <footer>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
